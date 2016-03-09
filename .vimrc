@@ -15,7 +15,9 @@ set ruler "viewing curer position
 set hls "highlight for search wordg
 set incsearch
 
-set mouse=a
+"mouse option toggle
+map <F7> <ESC>:set mouse=a<CR>
+map <F8> <ESC>:set mouse-=a<CR>
 
 set t_Co=256
 let g:molokai_original = 1
