@@ -1,7 +1,7 @@
 set number
-set softtabstop=2 "ontab key letter to space
-set tabstop=2 "one tab letter to space
-set shiftwidth=2 "<<, >> shift space
+set softtabstop=4 "ontab key letter to space
+set tabstop=4 "one tab letter to space
+set shiftwidth=4 "<<, >> shift space
 set expandtab
 
 set sm
@@ -14,6 +14,8 @@ set ruler "viewing curer position
 
 set hls "highlight for search wordg
 set incsearch
+
+set mouse=a
 
 set t_Co=256
 let g:molokai_original = 1
@@ -30,8 +32,10 @@ augroup filetypedetect
 au BufNewFile,BufRead *.webidl setf widl
 augroup END
 
+"---mark setting
 map <Space> <Plug>MarkSet
-map ;;; :MarkClear<CR>
+"nmap <C-@> :MarkClear<CR>
+nmap ;;; :MarkClear<CR>
 map <F3> \*
 map <F4> \#
 let g:mwDefaultHighlightingPalette = 'extended' 
