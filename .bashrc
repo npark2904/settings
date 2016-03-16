@@ -168,7 +168,7 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
 fi
 
 
-# add screen alias by Geunchae
+########################## add screen alias by Geunchae #############################
 alias scn='screen'
 
 alias ..='pushd ..'
