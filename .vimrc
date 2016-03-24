@@ -30,24 +30,58 @@ augroup filetypedetect
 au BufNewFile,BufRead *.webidl setf widl
 augroup END
 
-"ctag define code search macro!
-nmap <F8> <ESC><C-W>g}
+"------------------------------------------------ ctag define code search macro!
+nmap \] <ESC><Plug>MarkSet<ESC>:ts <C-R>=expand("<cword>")<CR><CR>
+nmap \} <ESC><Plug>MarkSet<ESC>:pts <C-R>=expand("<cword>")<CR><CR>
+nmap \ <ESC><Plug>MarkSet<ESC>:tab ts <C-R>=expand("<cword>")<CR><CR>
+"nmap \} <ESC><Plug>MarkSet<C-W>g}
+
+"------------------------------------------------ split window command macro!
+nmap 0 <ESC><C-w>w
+nmap ` <ESC><C-w>
+"------------------------------------------------ cursor move macro!
+nmap <s-k> <ESC>5k
+nmap <s-up> <ESC>5k
+nmap <s-j> <ESC>5j
+nmap <s-down> <ESC>5j
 
 "------------------------------------------------ mark setting
 map <Space> <Plug>MarkSet
 "nmap <C-@> :MarkClear<CR>
+map ;;' <Plug>MarkSet
 nmap ;;; :MarkClear<CR>
-map <F3> \*
-map <F4> \#
+
+nmap <F3> \*
+nmap <F4> \#
 let g:mwDefaultHighlightingPalette = 'extended'
 
-"----------------------------------------------------------------
+
+set csprg=/usr/bin/cscope
+set csto=0
+set cst
+set nocsverb
+if filereadable("./cscope.out")
+    cs add cscope.out
+else
+    cs add ~/db/cscope.out
+endif
+set csverb
+
+if filereadable("./tags")
+    set tags=./tags
+else
+    set tags=~/db/tags
+endif
+
+"---------------------------------------------------------------- 
 "------------------------------------------------ vendle settings
-"----------------------------------------------------------------
+"---------------------------------------------------------------- 
 
 set nocompatible
 filetype off
+ 
 set rtp+=~/.vim/bundle/vundle/
+ 
 call vundle#rc()
 Bundle 'gmarik/vundle'
 Bundle 'git://git.wincent.com/command-t.git'
@@ -90,3 +124,6 @@ Plugin 'AutoComplPop'
 Plugin 'ctrlp.vim'
 nmap \p <ESC>:CtrlPTag<CR>
 nmap \<S-P> <ESC>:CtrlPBufTagAll<CR>
+
+"------------------------------------------------ cscope_macros Plugin
+Plugin 'cscope_macros.vim'
