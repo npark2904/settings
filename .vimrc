@@ -19,26 +19,30 @@ set t_Co=256
 let g:molokai_original = 1
 let g:rehash256 = 1
 colorscheme molokai
+
 "color molokai
 "set background=dark
 
-"add jsm filetype
+"add filetype
 au BufNewFile,BufRead *.jsm set filetype=javascript
-
-"add webidl filetype
+au BufNewFile,BufRead *.aidl set filetype=java
 augroup filetypedetect
 au BufNewFile,BufRead *.webidl setf widl
 augroup END
 
-"------------------------------------------------ ctag define code search macro!
-nmap \] <ESC><Plug>MarkSet<ESC>:ts <C-R>=expand("<cword>")<CR><CR>
-nmap \} <ESC><Plug>MarkSet<ESC>:pts <C-R>=expand("<cword>")<CR><CR>
-nmap \ <ESC><Plug>MarkSet<ESC>:tab ts <C-R>=expand("<cword>")<CR><CR>
+"------------------------------------------------ (ctag) define code search macro!
+nmap \ <ESC><Plug>MarkSet<ESC>:ts <C-R>=expand("<cword>")<CR><CR>
+"nmap \} <ESC><Plug>MarkSet<ESC>:pts <C-R>=expand("<cword>")<CR><CR>
+nmap \} <ESC><Plug>MarkSet<ESC>:cs find g <C-R>=expand("<cword>")<CR><CR>
+nmap \] <ESC><Plug>MarkSet<ESC>:tab ts <C-R>=expand("<cword>")<CR><CR>
+nmap \[ <ESC><Plug>MarkSet<ESC>:tab cs find c <C-R>=expand("<cword>")<CR><CR>
+nmap \s <ESC><Plug>MarkSet<ESC>:tab cs find s <C-R>=expand("<cword>")<CR><CR>
 "nmap \} <ESC><Plug>MarkSet<C-W>g}
 
 "------------------------------------------------ split window command macro!
 nmap 0 <ESC><C-w>w
 nmap ` <ESC><C-w>
+nmap <C-w>N :tab vs<CR>
 "------------------------------------------------ cursor move macro!
 nmap <s-k> <ESC>5k
 nmap <s-up> <ESC>5k
@@ -55,6 +59,8 @@ nmap <F3> \*
 nmap <F4> \#
 let g:mwDefaultHighlightingPalette = 'extended'
 
+
+"------------------------------------------------ Set cscope & ctag DB file
 
 set csprg=/usr/bin/cscope
 set csto=0
@@ -122,8 +128,19 @@ Plugin 'AutoComplPop'
 
 "------------------------------------------------ ctrlp Plugin
 Plugin 'ctrlp.vim'
-nmap \p <ESC>:CtrlPTag<CR>
+"let g:ctrlp_max_files=0
+"let g:ctrlp_max_depth=500
+"nmap \p <ESC>:CtrlPTag<CR>
+nmap \p <ESC>:CtrlPBufTag<CR>
 nmap \<S-P> <ESC>:CtrlPBufTagAll<CR>
+nmap \<C-P> <ESC>:CtrlPBookmarkDir<CR>
+
+"------------------------------------------------ Fuzzyfinder Plugin
+Plugin 'FuzzyFinder'
+nmap \f <ESC>:FufFile **/<CR>
+nmap \h <ESC>:FufJumpList **/<CR>
+let g:fuf_file_exclude = '\v\~$|\.(o|exe|dll|bak|orig|swp)$|(^|[/\\])\.(hg|git|bzr)($|[/\\])'
 
 "------------------------------------------------ cscope_macros Plugin
 Plugin 'cscope_macros.vim'
+
