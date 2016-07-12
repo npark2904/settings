@@ -3,6 +3,9 @@ dbPath=~/db
 targetPath=
 
 if [ -n "$1" ];then
+#if have old readlink ver..
+#    targetPath=`readlink -e -n $1`
+#    if [ -z "$targetPath -o $? > 0 ];then
     targetPath=`readlink -e -n $1`
     if [ -z "$targetPath" ];then
         echo 

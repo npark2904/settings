@@ -39,10 +39,15 @@ nmap \[ <ESC><Plug>MarkSet<ESC>:tab cs find c <C-R>=expand("<cword>")<CR><CR>
 nmap \s <ESC><Plug>MarkSet<ESC>:tab cs find s <C-R>=expand("<cword>")<CR><CR>
 "nmap \} <ESC><Plug>MarkSet<C-W>g}
 
+"------------------------------------------------ Bookmark key
+nmap <F8> <ESC>:CopenBookmarks<CR>
+nmap \k <ESC>:Bookmark <C-R>=expand("<cword>")<CR>
+
 "------------------------------------------------ split window command macro!
 nmap 0 <ESC><C-w>w
 nmap ` <ESC><C-w>
 nmap <C-w>N :tab vs<CR>
+nmap gr <ESC>gT<ESC>
 "------------------------------------------------ cursor move macro!
 nmap <s-k> <ESC>5k
 nmap <s-up> <ESC>5k
@@ -59,6 +64,12 @@ nmap <F3> \*
 nmap <F4> \#
 let g:mwDefaultHighlightingPalette = 'extended'
 
+
+"------------------------------------------------ remember before cursor position
+au BufReadPost *
+            \ if line("'\"") > 0 && line("'\"") <= line("$") |
+            \ exe "norm g`\"" |
+            \ endif
 
 "------------------------------------------------ Set cscope & ctag DB file
 
@@ -138,9 +149,13 @@ nmap \<C-P> <ESC>:CtrlPBookmarkDir<CR>
 "------------------------------------------------ Fuzzyfinder Plugin
 Plugin 'FuzzyFinder'
 nmap \f <ESC>:FufFile **/<CR>
-nmap \h <ESC>:FufJumpList **/<CR>
+nmap \h <ESC>:FufJumpList<CR>
+nmap \F <ESC>:FufLine <C-R>=expand("<cword>")<CR><CR>
 let g:fuf_file_exclude = '\v\~$|\.(o|exe|dll|bak|orig|swp)$|(^|[/\\])\.(hg|git|bzr)($|[/\\])'
 
 "------------------------------------------------ cscope_macros Plugin
+let g:fuf_maxMenuWidth = 200
+"let g:fuf_previewHeight = 3
 Plugin 'cscope_macros.vim'
 
+Plugin 'simple_bookmarks.vim'
