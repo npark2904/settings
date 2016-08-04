@@ -43,16 +43,20 @@ nmap \s <ESC><Plug>MarkSet<ESC>:tab cs find s <C-R>=expand("<cword>")<CR><CR>
 nmap <F8> <ESC>:CopenBookmarks<CR>
 nmap \k <ESC>:Bookmark <C-R>=expand("<cword>")<CR>
 
-"------------------------------------------------ split window command macro!
+"------------------------------------------------ split window command key!
 nmap 0 <ESC><C-w>w
 nmap ` <ESC><C-w>
 nmap <C-w>N :tab vs<CR>
 nmap gr <ESC>gT<ESC>
-"------------------------------------------------ cursor move macro!
+"------------------------------------------------ cursor & page scroll key!
+nmap <s-k> <ESC>5k
 nmap <s-k> <ESC>5k
 nmap <s-up> <ESC>5k
 nmap <s-j> <ESC>5j
 nmap <s-down> <ESC>5j
+nmap E <ESC>5<C-e>
+nmap Y <ESC>5<C-y>
+
 
 "------------------------------------------------ mark setting
 map <Space> <Plug>MarkSet
@@ -63,6 +67,39 @@ nmap ;;; :MarkClear<CR>
 nmap <F3> \*
 nmap <F4> \#
 let g:mwDefaultHighlightingPalette = 'extended'
+
+
+"------------------------------------------------ My annotation hot key
+xmap \// :norm i//<CR>
+xmap \?? :norm xx<CR>
+xmap \" :norm i"<CR>
+xmap \# :norm i#<CR>
+xmap \<BS> :norm x<CR>
+
+
+"------------------------------------------------ My Test Question function
+"------------------------------------------------ 
+function! g:PGC_Question(note)
+    echohl Question
+        \ | let g:str = <SID>PGC_GetInput(a:note) |
+    echohl None
+    return g:str
+endfunction "}}}
+
+function! <SID>PGC_GetInput(note)
+    " Be sure synchronize
+    call inputsave()
+    " Get the input content
+    let l:input = input(a:note)
+    " Save the content
+    call inputrestore()
+    " Tell the Source Explorer
+    return l:input
+endfunction " }}}
+
+"vmap \q :call g:PGC_Question("Question test: ")<CR>
+
+"------------------------------------------------ 
 
 
 "------------------------------------------------ remember before cursor position
@@ -91,7 +128,7 @@ else
 endif
 
 "---------------------------------------------------------------- 
-"------------------------------------------------ vendle settings
+"------------------------------------------------ vundle settings
 "---------------------------------------------------------------- 
 
 set nocompatible
@@ -158,4 +195,26 @@ let g:fuf_maxMenuWidth = 200
 "let g:fuf_previewHeight = 3
 Plugin 'cscope_macros.vim'
 
+"------------------------------------------------ simple_bookmarks Plugin
 Plugin 'simple_bookmarks.vim'
+"let g:bookmark_window_state = 0
+"function! g:Bookmarks_toggle()
+"    if g:bookmark_window_state == 0 
+"       g:bookmark_window_state = 1
+"       :
+"    else
+"       g:bookmark_window_state = 0 
+"    endif
+"endfunction " }}}
+"
+"
+"------------------------------------------------ syntastic Plugin
+Plugin 'syntastic'
+execute pathogen#infect()
+
+"----------------------------------------------- srcexpl- Plugin
+Plugin 'Source-Explorer-srcexpl.vim'
+nmap <F10> :SrcExplToggle<CR>  
+let g:SrcExpl_winHeight = 10
+
+
