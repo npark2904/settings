@@ -39,9 +39,6 @@ nmap \[ <ESC><Plug>MarkSet<ESC>:tab cs find c <C-R>=expand("<cword>")<CR><CR>
 nmap \s <ESC><Plug>MarkSet<ESC>:tab cs find s <C-R>=expand("<cword>")<CR><CR>
 "nmap \} <ESC><Plug>MarkSet<C-W>g}
 
-"------------------------------------------------ Bookmark key
-nmap <F8> <ESC>:CopenBookmarks<CR>
-nmap \k <ESC>:Bookmark <C-R>=expand("<cword>")<CR>
 
 "------------------------------------------------ split window command key!
 nmap 0 <ESC><C-w>w
@@ -79,6 +76,7 @@ xmap \<BS> :norm x<CR>
 
 "------------------------------------------------ My Test Question function
 "------------------------------------------------ 
+"{{{
 function! g:PGC_Question(note)
     echohl Question
         \ | let g:str = <SID>PGC_GetInput(a:note) |
@@ -86,6 +84,7 @@ function! g:PGC_Question(note)
     return g:str
 endfunction "}}}
 
+"{{{
 function! <SID>PGC_GetInput(note)
     " Be sure synchronize
     call inputsave()
@@ -93,7 +92,7 @@ function! <SID>PGC_GetInput(note)
     let l:input = input(a:note)
     " Save the content
     call inputrestore()
-    " Tell the Source Explorer
+    " return value 
     return l:input
 endfunction " }}}
 
@@ -185,10 +184,19 @@ nmap \<C-P> <ESC>:CtrlPBookmarkDir<CR>
 
 "------------------------------------------------ Fuzzyfinder Plugin
 Plugin 'FuzzyFinder'
-nmap \f <ESC>:FufFile **/<CR>
+"nmap \f <ESC>:FufFile **/<CR>
+nmap \f <ESC>:call g:PGC_FufFile_currentPath()<CR>
 nmap \h <ESC>:FufJumpList<CR>
 nmap \F <ESC>:FufLine <C-R>=expand("<cword>")<CR><CR>
 let g:fuf_file_exclude = '\v\~$|\.(o|exe|dll|bak|orig|swp)$|(^|[/\\])\.(hg|git|bzr)($|[/\\])'
+
+"PGC_FufFile_currentPath {{{ "Need to reset current folder path because SrcExpl is using autochdir.
+function! g:PGC_FufFile_currentPath()
+   exe "set noautochdir"
+   exe "lcd $PWD"
+   exe "FufFile **/"
+endfunction "}}}
+
 
 "------------------------------------------------ cscope_macros Plugin
 let g:fuf_maxMenuWidth = 200
@@ -197,6 +205,9 @@ Plugin 'cscope_macros.vim'
 
 "------------------------------------------------ simple_bookmarks Plugin
 Plugin 'simple_bookmarks.vim'
+"------------------------------------------------ simple_bookmark hot key
+nmap <F8> <ESC>:CopenBookmarks<CR>
+nmap \k <ESC>:Bookmark <C-R>=expand("<cword>")<CR>
 "let g:bookmark_window_state = 0
 "function! g:Bookmarks_toggle()
 "    if g:bookmark_window_state == 0 
@@ -216,5 +227,4 @@ execute pathogen#infect()
 Plugin 'Source-Explorer-srcexpl.vim'
 nmap <F10> :SrcExplToggle<CR>  
 let g:SrcExpl_winHeight = 10
-
-
+"let g:started_path = getcwd()

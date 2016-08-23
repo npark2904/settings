@@ -1254,7 +1254,8 @@ function! <SID>SrcExpl_Init()
     let s:SrcExpl_symbol = ''
 
     " Auto change current work directory
-    exe "set autochdir"
+    " PGC - delete
+    "exe set autochdir
     " Let Vim find the possible tags file
     "
     " PGC
