@@ -37,6 +37,7 @@ nmap \} <ESC><Plug>MarkSet<ESC>:cs find g <C-R>=expand("<cword>")<CR><CR>
 nmap \] <ESC><Plug>MarkSet<ESC>:tab ts <C-R>=expand("<cword>")<CR><CR>
 nmap \[ <ESC><Plug>MarkSet<ESC>:tab cs find c <C-R>=expand("<cword>")<CR><CR>
 nmap \s <ESC><Plug>MarkSet<ESC>:tab cs find s <C-R>=expand("<cword>")<CR><CR>
+nmap <F5> <ESC>:Marks<CR>
 "nmap \} <ESC><Plug>MarkSet<C-W>g}
 
 
@@ -63,7 +64,8 @@ nmap ;;; :MarkClear<CR>
 
 nmap <F3> \*
 nmap <F4> \#
-let g:mwDefaultHighlightingPalette = 'extended'
+"let g:mwDefaultHighlightingPalette = 'extended'
+let g:mwDefaultHighlightingPalette = 'maximum'
 
 
 "------------------------------------------------ My annotation hot key
@@ -137,7 +139,8 @@ set rtp+=~/.vim/bundle/vundle/
  
 call vundle#rc()
 Bundle 'gmarik/vundle'
-Bundle 'git://git.wincent.com/command-t.git'
+"Bundle 'git://git.wincent.com/command-t.git'
+Bundle 'command-t'
 Plugin 'L9'
  
 filetype plugin indent on
@@ -153,8 +156,6 @@ let g:NERDTreeWinSize=40
 
 "------------------------------------------------ mouse option toggle Plugin
 Plugin 'toggle_mouse'
-"map <F7> <ESC>:set mouse=a<CR>
-"map <S-F7> <ESC>:set mouse-=a<CR>
 
 "------------------------------------------------ Tagbar toggle Plugin
 Plugin 'Tagbar'
@@ -165,7 +166,8 @@ let g:tagbar_show_linenumbers = 1
 "let g:autofocus = 1
 
 "------------------------------------------------ Powerline Bundle
-Bundle 'https://github.com/Lokaltog/vim-powerline.git'
+"Bundle 'https://github.com/Lokaltog/vim-powerline.git'
+Bundle 'vim-powerline'
 set laststatus=2
 "language en_US.UTF-8
 "let g:Powerline_symbols = 'fancy'
@@ -205,20 +207,12 @@ Plugin 'cscope_macros.vim'
 
 "------------------------------------------------ simple_bookmarks Plugin
 Plugin 'simple_bookmarks.vim'
+let g:toggle_bookmark_key = "<F6>"
+
 "------------------------------------------------ simple_bookmark hot key
-nmap <F8> <ESC>:CopenBookmarks<CR>
+nmap <F6> <ESC>:CopenBookmarks<CR>
 nmap \k <ESC>:Bookmark <C-R>=expand("<cword>")<CR>
-"let g:bookmark_window_state = 0
-"function! g:Bookmarks_toggle()
-"    if g:bookmark_window_state == 0 
-"       g:bookmark_window_state = 1
-"       :
-"    else
-"       g:bookmark_window_state = 0 
-"    endif
-"endfunction " }}}
-"
-"
+
 "------------------------------------------------ syntastic Plugin
 Plugin 'syntastic'
 execute pathogen#infect()

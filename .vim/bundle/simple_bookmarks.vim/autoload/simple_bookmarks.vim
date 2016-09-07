@@ -205,6 +205,12 @@ function! s:SetupQuickfixMappings()
     exe 'nnoremap <silent> <buffer> <cr> '.cr_mapping
   endif
 
+  "PGC - add close key map [[[
+  if exists('g:toggle_bookmark_key')
+      exe 'nnoremap <silent> <buffer> '.g:toggle_bookmark_key.' :quit<cr>'
+  endif
+  "]]]
+
   nnoremap <buffer> dd :call <SID>DeleteQuickfixBookmark()<cr>
   nnoremap <buffer> u :call <SID>UndoDeleteQuickfixBookmark()<cr>
 endfunction

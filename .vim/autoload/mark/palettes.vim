@@ -40,14 +40,50 @@ endfunction
 
 function! mark#palettes#Maximum()
 		let l:palette = [
-		\   { 'ctermbg':'Yellow',     'ctermfg':'Black', 'guibg':'#FFDB72', 'guifg':'Black' },
-		\   { 'ctermbg':'Red',        'ctermfg':'Black', 'guibg':'#FF7272', 'guifg':'Black' },
-		\   { 'ctermbg':'Green',      'ctermfg':'Black', 'guibg':'#A4E57E', 'guifg':'Black' },
-		\   { 'ctermbg':'Magenta',    'ctermfg':'Black', 'guibg':'#FFB3FF', 'guifg':'Black' },
-		\   { 'ctermbg':'Blue',       'ctermfg':'Black', 'guibg':'#9999FF', 'guifg':'Black' },
-		\   { 'ctermbg':'Cyan',       'ctermfg':'Black', 'guibg':'#8CCBEA', 'guifg':'Black' },
+		\   { 'ctermbg':'Yellow',     'ctermfg':'Black', 'guibg':'#FFE8A1', 'guifg':'#806000' },
+		\   { 'ctermbg':'DarkRed',    'ctermfg':'White', 'guibg':'#FF0000', 'guifg':'#FFFFFF' },
+		\   { 'ctermbg':'Green',      'ctermfg':'Black', 'guibg':'#ACFFA1', 'guifg':'#0F8000' },
+		\   { 'ctermbg':'DarkBlue',   'ctermfg':'White', 'guibg':'#A1DBFF', 'guifg':'#004E80' },
+		\   { 'ctermbg':'Magenta',    'ctermfg':'White', 'guibg':'#FFA1C6', 'guifg':'#80005D' },
+		\   { 'ctermbg':'Gray',       'ctermfg':'Black', 'guibg':'#A3A396', 'guifg':'#222222' },
+		\   { 'ctermbg':'Blue',       'ctermfg':'White', 'guibg':'#0000FF', 'guifg':'#F0F0FF' },
+		\   { 'ctermbg':'DarkGreen',  'ctermfg':'White', 'guibg':'#D0FFA1', 'guifg':'#FFFFFF' },
+		\   { 'ctermbg':'Red',        'ctermfg':'Yellow','guibg':'#F3FFA1', 'guifg':'#6F8000' },
+		\   { 'ctermbg':'White',      'ctermfg':'Black', 'guibg':'#E3E3D2', 'guifg':'#999999' },
+		\   { 'ctermbg':'57',         'ctermfg':'White', 'guibg':'#53534C', 'guifg':'#DDDDDD' },
+		\   { 'ctermbg':'Brown',      'ctermfg':'White', 'guibg':'#FFC4A1', 'guifg':'#803000' },
+		\   { 'ctermbg':'Blue',       'ctermfg':'Black', 'guibg':'#A1B7FF', 'guifg':'#001E80' },
+		\   { 'ctermbg':'214',        'ctermfg':'Black', 'guibg':'#D3D3C3', 'guifg':'#666666' },
+		\   { 'ctermbg':'126',        'ctermfg':'White', 'guibg':'#F5A1FF', 'guifg':'#720080' },
+		\   { 'ctermbg':'156',        'ctermfg':'Black', 'guibg':'#131311', 'guifg':'#AAAAAA' },
+		\   { 'ctermbg':'141',        'ctermfg':'Black', 'guibg':'#A1FEFF', 'guifg':'#007F80' },
+		\   { 'ctermbg':'DarkCyan',   'ctermfg':'Black', 'guibg':'#D2A1FF', 'guifg':'#420080' },
+		\   { 'ctermbg':'DarkMagenta','ctermfg':'White', 'guibg':'#A29CCF', 'guifg':'#120080' },
 		\]
 		if has('gui_running') || &t_Co >= 88
+		let l:palette += [
+		\   { 'ctermfg':'123',		  'ctermbg':'239', 'guibg':'#A29C29', 'guifg':'#120080' },
+		\   { 'ctermfg':'Yellow',     'ctermbg':'239', 'guibg':'#FFE811', 'guifg':'#806000' },
+		\   { 'ctermfg':'202',		  'ctermbg':'239', 'guibg':'#FF0012', 'guifg':'#FFFFFF' },
+		\   { 'ctermfg':'154',		  'ctermbg':'239', 'guibg':'#D0FF18', 'guifg':'#FFFFFF' },
+		\   { 'ctermfg':'33',		  'ctermbg':'239', 'guibg':'#A1DB14', 'guifg':'#004E80' },
+		\   { 'ctermfg':'206',		  'ctermbg':'239', 'guibg':'#FFA115', 'guifg':'#80005D' },
+		\   { 'ctermfg':'138',		  'ctermbg':'239', 'guibg':'#A3A316', 'guifg':'#222222' },
+		\   { 'ctermfg':'Blue',       'ctermbg':'239', 'guibg':'#000017', 'guifg':'#F0F0FF' },
+		\   { 'ctermfg':'Green',      'ctermbg':'239', 'guibg':'#ACFF13', 'guifg':'#0F8000' },
+		\   { 'ctermfg':'Red',        'ctermbg':'239', 'guibg':'#F3FF19', 'guifg':'#6F8000' },
+		\   { 'ctermfg':'Gray',       'ctermbg':'239', 'guibg':'#E3E320', 'guifg':'#999999' },
+		\   { 'ctermfg':'75',         'ctermbg':'239', 'guibg':'#535321', 'guifg':'#DDDDDD' },
+		\   { 'ctermfg':'106',	      'ctermbg':'239', 'guibg':'#FFC422', 'guifg':'#803000' },
+		\   { 'ctermfg':'Blue',       'ctermbg':'239', 'guibg':'#A1B723', 'guifg':'#001E80' },
+		\   { 'ctermfg':'214',        'ctermbg':'239', 'guibg':'#D3D324', 'guifg':'#666666' },
+		\   { 'ctermfg':'203',        'ctermbg':'239', 'guibg':'#F5A125', 'guifg':'#720080' },
+		\   { 'ctermfg':'156',        'ctermbg':'239', 'guibg':'#131326', 'guifg':'#AAAAAA' },
+		\   { 'ctermfg':'141',        'ctermbg':'239', 'guibg':'#A1FE27', 'guifg':'#007F80' },
+		\   { 'ctermfg':'DarkCyan',   'ctermbg':'239', 'guibg':'#D2A128', 'guifg':'#420080' },
+		\]
+		endif
+		if has('gui_running') || &t_Co >= 256 && 1 == 0 "PGC-false 
 		let l:palette += [
 		\   { 'ctermfg':'White',      'ctermbg':'17',    'guifg':'White',   'guibg':'#00005f' },
 		\   { 'ctermfg':'White',      'ctermbg':'22',    'guifg':'White',   'guibg':'#005f00' },
@@ -70,10 +106,6 @@ function! mark#palettes#Maximum()
 		\   { 'ctermfg':'Black',      'ctermbg':'78',    'guifg':'Black',   'guibg':'#5fd787' },
 		\   { 'ctermfg':'Black',      'ctermbg':'79',    'guifg':'Black',   'guibg':'#5fd7af' },
 		\   { 'ctermfg':'Black',      'ctermbg':'85',    'guifg':'Black',   'guibg':'#5fffaf' },
-		\]
-		endif
-		if has('gui_running') || &t_Co >= 256
-		let l:palette += [
 		\   { 'ctermfg':'White',      'ctermbg':'90',    'guifg':'White',   'guibg':'#870087' },
 		\   { 'ctermfg':'White',      'ctermbg':'95',    'guifg':'White',   'guibg':'#875f5f' },
 		\   { 'ctermfg':'White',      'ctermbg':'96',    'guifg':'White',   'guibg':'#875f87' },

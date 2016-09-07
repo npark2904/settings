@@ -1135,9 +1135,26 @@ function! mark#List()
 		execute 'echohl MarkWord' . (i + 1)
 		let c = s:GetAlternativeCount(s:pattern[i])
 		echo printf('%1s%3d%4s %s', s:GetMarker(i, l:nextGroupIndex), (i + 1), (c > 1 ? '('.c.')' : ''), s:pattern[i])
-		echohl None
+		"{{ PGC modify
+		if empty(s:pattern[i])
+			break
+		endif
+		"}}
 	endfor
 
+	"PGC {{
+	echohl None
+	echohl Question
+		call inputsave()
+		" Get the input content
+		let l:input = input("Search Number : ")
+		" Save the content
+		call inputrestore()
+	echohl None
+	echon ' '
+	call mark#SearchGroupMark(l:input,1,0,1)
+	"}}
+	"
 	if ! s:enabled
 		echo 'Marks are currently disabled.'
 	endif
