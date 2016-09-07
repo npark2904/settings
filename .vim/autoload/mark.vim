@@ -1106,22 +1106,24 @@ function! mark#QueryMarkGroupNum()
 	let l:nextGroupIndex = s:GetNextGroupIndex()
 	call s:PrintMarkGroup(l:nextGroupIndex)
 
-	let l:nr = 0
-	while 1
-		let l:char = nr2char(getchar())
-
-		if l:char ==# "\<CR>"
-			return (l:nr == 0 ? l:nextGroupIndex + 1 : l:nr)
-		elseif l:char !~# '\d'
-			return -1
-		endif
-		echon l:char
-
-		let l:nr = 10 * l:nr + l:char
-		if s:markNum < 10 * l:nr
-			return l:nr
-		endif
-	endwhile
+	"PGC - delete [[[
+"	let l:nr = 0
+"	while 1
+"		let l:char = nr2char(getchar())
+"
+"		if l:char ==# "\<CR>"
+"			return (l:nr == 0 ? l:nextGroupIndex + 1 : l:nr)
+"		elseif l:char !~# '\d'
+"			return -1
+"		endif
+"		echon l:char
+"
+"		let l:nr = 10 * l:nr + l:char
+"		if s:markNum < 10 * l:nr
+"			return l:nr
+"		endif
+"	endwhile
+"	]]]
 endfunction
 
 " :Marks command.
@@ -1148,11 +1150,19 @@ function! mark#List()
 		call inputsave()
 		" Get the input content
 		let l:input = input("Search Number : ")
+
+		if l:input !~# '^\d\+$'
+			let l:input = 999
+		endif
 		" Save the content
 		call inputrestore()
 	echohl None
 	echon ' '
-	call mark#SearchGroupMark(l:input,1,0,1)
+
+	let l:result = mark#SearchGroupMark(l:input,1,0,1)
+	if l:result == 1
+		call feedkeys("zz")
+	endif
 	"}}
 	"
 	if ! s:enabled
