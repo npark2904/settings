@@ -989,6 +989,10 @@ endfunction
 
 " :MarkLoad command.
 function! mark#LoadCommand( isShowMessages, ... )
+	"PGC - Load mark file [[[
+	source "~/.vim_PGC_Marks/.".a:1
+	"]]]
+
 	if a:0
 		let l:marksVariable = printf('g:MARK_%s', a:1)
 		if exists(l:marksVariable)
@@ -1041,6 +1045,14 @@ function! s:SavePattern( ... )
 				unlet! g:MARK_{a:1}
 			else
 				let g:MARK_{a:1} = string(l:savedMarks)
+				"PGC - file save [[[
+				if ! isdirectory($HOME."/.vim_PGC_Marks")
+					call mkdir($HOME."/.vim_PGC_Marks", "p", 0755)
+				endif
+				let bookmarks_file = fnamemodify("~/.vim_PGC_Marks/.".a:1, ':p')
+				let data = [join(["let g:MARK_".a:1, substitute(g:MARK_{a:1}, '\', '\\', 'g')."\t"], ' = ')]
+				call writefile(data, bookmarks_file)
+				"]]]
 			endif
 		catch /^Vim\%((\a\+)\)\=:/
 			" v:exception contains what is normally in v:errmsg, but with extra
