@@ -990,7 +990,9 @@ endfunction
 " :MarkLoad command.
 function! mark#LoadCommand( isShowMessages, ... )
 	"PGC - Load mark file [[[
-	source "~/.vim_PGC_Marks/.".a:1
+	if (filereadable($HOME."/.vim_PGC_Marks/.".a:1))
+		execute "source ~/.vim_PGC_Marks/.".a:1
+	endif
 	"]]]
 
 	if a:0
@@ -1050,7 +1052,7 @@ function! s:SavePattern( ... )
 					call mkdir($HOME."/.vim_PGC_Marks", "p", 0755)
 				endif
 				let bookmarks_file = fnamemodify("~/.vim_PGC_Marks/.".a:1, ':p')
-				let data = [join(["let g:MARK_".a:1, substitute(g:MARK_{a:1}, '\', '\\', 'g')."\t"], ' = ')]
+				let data = [join(["let g:MARK_".a:1, "\"".substitute(g:MARK_{a:1}, '\', '\\\', 'g')."\""], ' = ')]
 				call writefile(data, bookmarks_file)
 				"]]]
 			endif
