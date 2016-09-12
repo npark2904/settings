@@ -990,8 +990,8 @@ endfunction
 " :MarkLoad command.
 function! mark#LoadCommand( isShowMessages, ... )
 	"PGC - Load mark file [[[
-	if (filereadable($HOME."/.vim_PGC_Marks/.".a:1))
-		execute "source ~/.vim_PGC_Marks/.".a:1
+	if (filereadable(g:PGC_Mark_Store_Path."/.Mark_".a:1))
+		execute "source ".g:PGC_Mark_Store_Path."/.Mark_".a:1
 	endif
 	"]]]
 
@@ -1048,12 +1048,12 @@ function! s:SavePattern( ... )
 			else
 				let g:MARK_{a:1} = string(l:savedMarks)
 				"PGC - file save [[[
-				if ! isdirectory($HOME."/.vim_PGC_Marks")
-					call mkdir($HOME."/.vim_PGC_Marks", "p", 0755)
+				if ! isdirectory(g:PGC_Mark_Store_Path)
+					call mkdir(g:PGC_Mark_Store_Path, "p", 0755)
 				endif
-				let bookmarks_file = fnamemodify("~/.vim_PGC_Marks/.".a:1, ':p')
+				let marks_file = fnamemodify(g:PGC_Mark_Store_Path."/.Mark_".a:1, ':p')
 				let data = [join(["let g:MARK_".a:1, "\"".substitute(g:MARK_{a:1}, '\', '\\\', 'g')."\""], ' = ')]
-				call writefile(data, bookmarks_file)
+				call writefile(data, marks_file)
 				"]]]
 			endif
 		catch /^Vim\%((\a\+)\)\=:/

@@ -286,6 +286,16 @@ if ! exists('g:mwDirectGroupJumpMappingNum')
 	let g:mwDirectGroupJumpMappingNum = 9
 endif
 
+"- PGC - Load saved Marks ------------------------------------------------------
+
+let g:PGC_Mark_Store_Path = $HOME."/.vim_PGC_Marks"
+function! s:PGC_Load_savedMarks()
+	let l:Saved_Marks = split(system("ls -a ".g:PGC_Mark_Store_Path." | grep \.Mark"), "\n")
+	for l:name in l:Saved_Marks
+		let g:MARK_{substitute(l:name, '.Mark_', '', '')} = ""
+	endfor
+endfunction
+call s:PGC_Load_savedMarks()
 
 "- default highlightings ------------------------------------------------------
 
