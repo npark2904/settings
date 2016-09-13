@@ -40,6 +40,8 @@ nmap \s <ESC><Plug>MarkSet<ESC>:tab cs find s <C-R>=expand("<cword>")<CR><CR>
 nmap <F5> <ESC>:Marks<CR>
 "nmap \} <ESC><Plug>MarkSet<C-W>g}
 
+let g:PGC_Store_Path = $HOME."/.vim_PGC_store"
+let g:PGC_Mark_Store_Path = g:PGC_Store_Path
 
 "------------------------------------------------ split window command key!
 nmap 0 <ESC><C-w>w
