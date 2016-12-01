@@ -183,8 +183,8 @@ let g:tagbar_show_linenumbers = 1
 Plugin 'conoline.vim'
 let g:conoline_color_normal_light = 'guibg=black guifg=white gui=bold ctermbg=236'
 let g:conoline_color_insert_light = 'guibg=black guifg=white gui=bold ctermbg=black'
-"let g:conoline_color_normal_nr_light = 'ctermbg=118'
-"let g:conoline_color_insert_nr_light = 'guibg=260 ctermbg=260'
+let g:conoline_color_normal_nr_light = 'ctermbg=154 ctermfg=022'
+let g:conoline_color_insert_nr_light = 'ctermbg=white ctermfg=026'
 let g:conoline_auto_enable = 1 
 
 "------------------------------------------------ Powerline Bundle
