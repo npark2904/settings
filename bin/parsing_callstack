@@ -1,0 +1,46 @@
+#!/bin/bash
+
+Address=
+Library=
+
+parseLog()
+{
+        IFS=' ' read -a args <<< $@
+        for ((i=0;i<${#args[@]};i++)) do
+            if [[ ${args[i]} == "#"* ]]; then
+                Address=${args[i+2]}
+
+                IFS='/' read -a tmp <<< ${args[i+3]}
+                IFS=' ' read -a args2 <<< $tmp
+                for ((j=0;j<${#args2[@]};j++)) do
+                    if [[ ${args2[j]} == *".so" ]]; then
+                        Sofile="$FILE${args2[j]}"
+                    fi
+                done
+#                echo $Address" "$Sofile
+                addr2line -C -f -e $Sofile $Address
+                echo
+            fi
+        done
+}
+
+
+if [ -z $1 ]; then
+    echo "Args is null. Input directory exist data.txt & symbol"
+    exit 1;
+fi
+FILE=$1
+
+if [[ ! -e "$FILE/data.txt" ]];then
+    echo "$FILE/data.txt does not exist"
+    exit 1
+fi
+
+echo -e "\n################################################################################"
+k=0
+while read line;do
+    parseLog $line 
+    ((k++))
+done < "$FILE/data.txt"
+echo -e "#################################################################################\n"
+echo "Total number of lines in file: $k"

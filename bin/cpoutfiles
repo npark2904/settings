@@ -1,0 +1,23 @@
+#!/bin/sh
+if [ -z $ANDROID_PRODUCT_OUT ];then
+    echo "ANDROID_PRODUCT_OUT is null"
+    exit 1;
+else
+    echo "\$ANDROID_PRODUCT_OUT = "$ANDROID_PRODUCT_OUT
+fi
+
+if [[ ! -e "$ANDROID_PRODUCT_OUT/system/lib/libims.so" ]];then
+    echo "libims.so does not exist"
+    error=1
+fi
+if [[ ! -e "$ANDROID_PRODUCT_OUT/system/priv-app/Ims4/Ims4.apk" ]];then
+    echo "Ims4.apk does not exist"
+    error=1
+fi
+
+if [[ $error == 1 ]];then
+    exit 1
+fi
+
+cp -r $ANDROID_PRODUCT_OUT/system/lib/libims.so ~/ && cp -r $ANDROID_PRODUCT_OUT/system/priv-app/Ims4/Ims4.apk ~/
+echo "Copy to root \"libims.so\" \"Ims4.apk\""
