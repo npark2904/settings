@@ -342,7 +342,8 @@ function! g:SrcExpl_Jump()
     endif
 
     " Open the buffer using edit window
-    exe "edit " . s:SrcExpl_currMark[0]
+    "exe "edit " . s:SrcExpl_currMark[0]
+    exe "tabf " . s:SrcExpl_currMark[0]
     " Jump to the context line of that symbol
     call cursor(s:SrcExpl_currMark[1], s:SrcExpl_currMark[2])
     " Match the symbol of definition
@@ -732,7 +733,8 @@ function! <SID>SrcExpl_GetMarkList()
     endif
 
     " Load the buffer content into the edit window
-    exe "edit " . get(g:SrcExpl_markList, -1)[0]
+    "exe "edit " . get(g:SrcExpl_markList, -1)[0]
+    exe "tabf " . get(g:SrcExpl_markList, -1)[0]
     " Jump to the context position of that symbol
     call cursor(get(g:SrcExpl_markList, -1)[1], get(g:SrcExpl_markList, -1)[2])
     " Remove the latest mark now
@@ -794,7 +796,8 @@ function! <SID>SrcExpl_SelToJump()
     " Indeed go back to the edit window
     silent! exe s:SrcExpl_editWin . "wincmd w"
     " Open the file containing the definition context
-    exe "edit " . l:fpath
+    "exe "edit " . l:fpath
+    exe "tabf " . l:fpath
 
     " Modify the EX Command to locate the tag exactly
     let l:expr = substitute(l:excmd, '/^', '/^\\C', 'g')
