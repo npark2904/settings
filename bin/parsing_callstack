@@ -26,7 +26,7 @@ parseLog()
 
 
 if [ -z $1 ]; then
-    echo "Args is null. Input directory exist data.txt & symbol"
+    echo "[Error] Path is null. Input the directory where data.txt & sysbol files are located."
     exit 1;
 fi
 FILE=$1
