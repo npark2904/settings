@@ -145,7 +145,7 @@ fi
 # some more ls aliases
 alias ll='ls -alF'
 alias la='ls -A'
-alias l='ls -CF'
+alias l='ls -lF'
 
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
@@ -169,7 +169,9 @@ fi
 
 
 ########################## add screen alias by Geunchae #############################
-alias scn='screen'
+alias SR='screen -R'
 
-alias ..='pushd ..'
-alias ,,='popd'
+alias ..='pushd .. >/dev/null'
+alias ,,='popd >/dev/null'
+alias dirs='dirs -v'
+alias cd='pushd >/dev/null'
