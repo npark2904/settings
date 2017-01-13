@@ -5,29 +5,29 @@ set cpo&vim
 
 function! s:insert() abort
   highlight! def link CursorLine ConoLineInsert
-  highlight! def link CursorColumn ConoLineInsert
+"  highlight! def link CursorColumn ConoLineInsert
   highlight! def link CursorLineNr ConoLineInsertNr
 endfunction
 
 function! s:normal() abort
   highlight! def link CursorLine ConoLineNormal
-  highlight! def link CursorColumn ConoLineNormal
+"  highlight! def link CursorColumn ConoLineNormal
   highlight! def link CursorLineNr ConoLineNormalNr
 endfunction
 
 function! s:winenter() abort
   setlocal cursorline
-  setlocal cursorcolumn
+"  setlocal cursorcolumn
 endfunction
 
 function! s:winleave() abort
   setlocal nocursorline
-  setlocal nocursorcolumn
+"  setlocal nocursorcolumn
 endfunction
 
 function! conoline#disable() abort
   setlocal nocursorline
-  setlocal nocursorcolumn
+"  setlocal nocursorcolumn
   autocmd! conoline_only_active_window
   autocmd! conoline_color_insert
   autocmd! conoline_color_enable

@@ -14,7 +14,7 @@ parseLog()
                 IFS=' ' read -a args2 <<< $tmp
                 for ((j=0;j<${#args2[@]};j++)) do
                     if [[ ${args2[j]} == *".so" ]]; then
-                        Sofile="$FILE${args2[j]}"
+                        Sofile="$filePath/${args2[j]}"
                     fi
                 done
 #                echo $Address" "$Sofile
@@ -26,21 +26,22 @@ parseLog()
 
 
 if [ -z $1 ]; then
-    echo "[Error] Path is null. Input the directory where data.txt & sysbol files are located."
-    exit 1;
+    filePath="$PWD"
+else
+    #filePath=`readlink -e -n $1`
+    filePath=$1
 fi
-FILE=$1
 
-if [[ ! -e "$FILE/data.txt" ]];then
-    echo "$FILE/data.txt does not exist"
+if [[ ! -e "$filePath/data.txt" ]];then
+    echo "$filePath/data.txt does not exist"
     exit 1
 fi
 
-echo -e "\n################################################################################"
+echo -e "\n################################################################################\n"
 k=0
 while read line;do
     parseLog $line 
     ((k++))
-done < "$FILE/data.txt"
+done < "$filePath/data.txt"
 echo -e "#################################################################################\n"
-echo "Total number of lines in file: $k"
+echo -e "Total number of lines in file: $k\n"

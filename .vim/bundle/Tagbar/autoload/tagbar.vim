@@ -1689,10 +1689,12 @@ function! s:ToggleWindow() abort
     let tagbarwinnr = bufwinnr("__Tagbar__")
     if tagbarwinnr != -1
         call s:CloseWindow()
+        exe "ConoLineEnable"
         return
     endif
 
     call s:OpenWindow('')
+    exe "ConoLineDisable"
 
     call s:LogDebugMessage('ToggleWindow finished')
 endfunction
