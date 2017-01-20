@@ -28,12 +28,17 @@ parseLog()
 if [ -z $1 ]; then
     filePath="$PWD"
 else
-    #filePath=`readlink -e -n $1`
-    filePath=$1
+    filePath=`readlink -e -n $1`
+#    filePath=$1
 fi
 
-if [[ ! -e "$filePath/data.txt" ]];then
-    echo "$filePath/data.txt does not exist"
+if [ ! -f $filePath ]; then
+    if [[ ! -e "$filePath/data.txt" ]];then
+        echo "\"$filePath/data.txt\" does not exist"
+        exit 1
+    fi
+else
+    echo "\"$1\" is not directory"
     exit 1
 fi
 
