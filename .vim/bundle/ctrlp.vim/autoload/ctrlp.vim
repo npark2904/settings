@@ -23,7 +23,6 @@ fu! s:ignore()
 		\ '_MTN',
 		\ 'blib',
 		\ 'CVS',
-		\ 'RCS',
 		\ 'SCCS',
 		\ '_sgbak',
 		\ 'autom4te\.cache',
