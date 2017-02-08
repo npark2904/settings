@@ -8,6 +8,9 @@ set sm
 set title
 
 set nobackup
+set noswapfile
+"set backupdir=~/.vim/backup/
+
 syntax on
 set ruler "viewing curer position
 "set autoindent

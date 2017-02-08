@@ -28,6 +28,10 @@ if exists(':Tagbar') == 0
     runtime plugin/tagbar.vim
 endif
 
+if !exists('g:isTagbarOpened')
+ let g:isTagbarOpened = 0
+endif
+
 " Basic init {{{2
 
 redir => s:ftype_out
@@ -1703,6 +1707,8 @@ endfunction
 function! s:OpenWindow(flags) abort
     call s:LogDebugMessage("OpenWindow called with flags: '" . a:flags . "'")
 
+    let g:isTagbarOpened = 1
+
     let autofocus = a:flags =~# 'f'
     let jump      = a:flags =~# 'j'
     let autoclose = a:flags =~# 'c'
@@ -1838,6 +1844,8 @@ endfunction
 " s:CloseWindow() {{{2
 function! s:CloseWindow() abort
     call s:LogDebugMessage('CloseWindow called')
+
+    let g:isTagbarOpened = 0
 
     let tagbarwinnr = bufwinnr('__Tagbar__')
     if tagbarwinnr == -1
@@ -3262,99 +3270,102 @@ endfunction
 " Helper functions {{{1
 " s:AutoUpdate() {{{2
 function! s:AutoUpdate(fname, force) abort
-    call s:LogDebugMessage('AutoUpdate called [' . a:fname . ']')
+        call s:LogDebugMessage('AutoUpdate called [' . a:fname . ']')
 
-    " This file is being loaded due to a quickfix command like vimgrep, so
-    " don't process it
-    if exists('s:tagbar_qf_active')
-        return
-    elseif exists('s:window_opening')
-        " This can happen if another plugin causes the active window to change
-        " with an autocmd during the initial Tagbar window creation. In that
-        " case InitWindow() hasn't had a chance to run yet and things can
-        " break. MiniBufExplorer does this, for example. Completely disabling
-        " autocmds at that point is also not ideal since for example
-        " statusline plugins won't be able to update.
-        call s:LogDebugMessage('Still opening window, stopping processing')
-        return
-    endif
+     if g:isTagbarOpened == 1
 
-    " Get the filetype of the file we're about to process
-    let bufnr = bufnr(a:fname)
-    let ftype = getbufvar(bufnr, '&filetype')
+        " This file is being loaded due to a quickfix command like vimgrep, so
+        " don't process it
+        if exists('s:tagbar_qf_active')
+            return
+        elseif exists('s:window_opening')
+            " This can happen if another plugin causes the active window to change
+            " with an autocmd during the initial Tagbar window creation. In that
+            " case InitWindow() hasn't had a chance to run yet and things can
+            " break. MiniBufExplorer does this, for example. Completely disabling
+            " autocmds at that point is also not ideal since for example
+            " statusline plugins won't be able to update.
+            call s:LogDebugMessage('Still opening window, stopping processing')
+            return
+        endif
 
-    " Don't do anything if we're in the tagbar window
-    if ftype == 'tagbar'
-        call s:LogDebugMessage('In Tagbar window, stopping processing')
-        return
-    endif
+        " Get the filetype of the file we're about to process
+        let bufnr = bufnr(a:fname)
+        let ftype = getbufvar(bufnr, '&filetype')
 
-    " Only consider the main filetype in cases like 'python.django'
-    let sftype = get(split(ftype, '\.'), 0, '')
-    call s:LogDebugMessage("Vim filetype: '" . ftype . "', " .
-                         \ "sanitized filetype: '" . sftype . "'")
+        " Don't do anything if we're in the tagbar window
+        if ftype == 'tagbar'
+            call s:LogDebugMessage('In Tagbar window, stopping processing')
+            return
+        endif
 
-    " Don't do anything if the file isn't supported
-    if !s:IsValidFile(a:fname, sftype)
-        call s:LogDebugMessage('Not a valid file, stopping processing')
-        let s:nearby_disabled = 1
-        return
-    endif
+        " Only consider the main filetype in cases like 'python.django'
+        let sftype = get(split(ftype, '\.'), 0, '')
+        call s:LogDebugMessage("Vim filetype: '" . ftype . "', " .
+                             \ "sanitized filetype: '" . sftype . "'")
 
-    let updated = 0
+        " Don't do anything if the file isn't supported
+        if !s:IsValidFile(a:fname, sftype)
+            call s:LogDebugMessage('Not a valid file, stopping processing')
+            let s:nearby_disabled = 1
+            return
+        endif
 
-    " Process the file if it's unknown or the information is outdated.
-    " Testing the mtime of the file is necessary in case it got changed
-    " outside of Vim, for example by checking out a different version from a
-    " VCS.
-    if s:known_files.has(a:fname)
-        let curfile = s:known_files.get(a:fname)
-        " if a:force || getbufvar(curfile.bufnr, '&modified') ||
-        if a:force || empty(curfile) ||
-         \ (filereadable(a:fname) && getftime(a:fname) > curfile.mtime)
-            call s:LogDebugMessage('File data outdated, updating' .
-                                 \ ' [' . a:fname . ']')
+        let updated = 0
+
+        " Process the file if it's unknown or the information is outdated.
+        " Testing the mtime of the file is necessary in case it got changed
+        " outside of Vim, for example by checking out a different version from a
+        " VCS.
+        if s:known_files.has(a:fname)
+            let curfile = s:known_files.get(a:fname)
+            " if a:force || getbufvar(curfile.bufnr, '&modified') ||
+            if a:force || empty(curfile) ||
+             \ (filereadable(a:fname) && getftime(a:fname) > curfile.mtime)
+                call s:LogDebugMessage('File data outdated, updating' .
+                                     \ ' [' . a:fname . ']')
+                call s:ProcessFile(a:fname, sftype)
+                let updated = 1
+            else
+                call s:LogDebugMessage('File data seems up to date' .
+                                     \ ' [' . a:fname . ']')
+            endif
+        elseif !s:known_files.has(a:fname)
+            call s:LogDebugMessage('New file, processing [' . a:fname . ']')
             call s:ProcessFile(a:fname, sftype)
             let updated = 1
-        else
-            call s:LogDebugMessage('File data seems up to date' .
-                                 \ ' [' . a:fname . ']')
         endif
-    elseif !s:known_files.has(a:fname)
-        call s:LogDebugMessage('New file, processing [' . a:fname . ']')
-        call s:ProcessFile(a:fname, sftype)
-        let updated = 1
+
+        let fileinfo = s:known_files.get(a:fname)
+
+        " If we don't have an entry for the file by now something must have gone
+        " wrong, so don't change the tagbar content
+        if empty(fileinfo)
+            call s:LogDebugMessage('fileinfo empty after processing' .
+                                 \ ' [' . a:fname . ']')
+            return
+        endif
+
+        " Display the tagbar content if the tags have been updated or a different
+        " file is being displayed
+        if bufwinnr('__Tagbar__') != -1 && !s:paused &&
+         \ (s:new_window || updated ||
+          \ (!empty(s:known_files.getCurrent(0)) &&
+           \ a:fname != s:known_files.getCurrent(0).fpath))
+            call s:RenderContent(fileinfo)
+        endif
+
+        " Call setCurrent after rendering so RenderContent can check whether the
+        " same file is being redisplayed
+        if !empty(fileinfo)
+            call s:LogDebugMessage('Setting current file [' . a:fname . ']')
+            call s:known_files.setCurrent(fileinfo)
+            let s:nearby_disabled = 0
+        endif
+
+        call s:HighlightTag(0)
+        call s:LogDebugMessage('AutoUpdate finished successfully')
     endif
-
-    let fileinfo = s:known_files.get(a:fname)
-
-    " If we don't have an entry for the file by now something must have gone
-    " wrong, so don't change the tagbar content
-    if empty(fileinfo)
-        call s:LogDebugMessage('fileinfo empty after processing' .
-                             \ ' [' . a:fname . ']')
-        return
-    endif
-
-    " Display the tagbar content if the tags have been updated or a different
-    " file is being displayed
-    if bufwinnr('__Tagbar__') != -1 && !s:paused &&
-     \ (s:new_window || updated ||
-      \ (!empty(s:known_files.getCurrent(0)) &&
-       \ a:fname != s:known_files.getCurrent(0).fpath))
-        call s:RenderContent(fileinfo)
-    endif
-
-    " Call setCurrent after rendering so RenderContent can check whether the
-    " same file is being redisplayed
-    if !empty(fileinfo)
-        call s:LogDebugMessage('Setting current file [' . a:fname . ']')
-        call s:known_files.setCurrent(fileinfo)
-        let s:nearby_disabled = 0
-    endif
-
-    call s:HighlightTag(0)
-    call s:LogDebugMessage('AutoUpdate finished successfully')
 endfunction
 
 " s:CheckMouseClick() {{{2
