@@ -28,12 +28,16 @@ function! PGC_Plugin#Save_Workspace ( ... )
     endif
 
 	if (filereadable(g:PGC_Store_Path."/.PGCSession_".a:1))
+		call system("cp -r ".g:PGC_Store_Path."/.PGCSession_".a:1." ".g:PGC_Store_Path."/.backup_".a:1."_session")
 		call system("rm -rf ".g:PGC_Store_Path."/.PGCSession_".a:1)
     endif
 
     execute "mksession ".g:PGC_Store_Path."/.PGCSession_".a:1
 
     execute "silent MarkSave ".a:1
+    echomsg "Saved."
+    call s:Autoload_sessionFiles()
+    call g:PGC_Load_savedMarks()
 endfunction
 
 
