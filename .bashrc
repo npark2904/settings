@@ -175,3 +175,5 @@ alias ..='pushd .. >/dev/null'
 alias ,,='popd >/dev/null'
 alias dirs='dirs -v'
 alias cd='pushd >/dev/null'
+
+export mirror='--reference=/home001/mirror/lr/'
