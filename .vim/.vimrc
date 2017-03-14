@@ -79,10 +79,33 @@ let g:mwDefaultHighlightingPalette = 'maximum'
 
 
 "------------------------------------------------ Highlight Cursor
-let HlUnderCursor=0
-autocmd CursorMoved * exe exists("HlUnderCursor")?HlUnderCursor?printf('match IncSearch /\V\<%s\>/', escape(expand('<cword>'), '/\')):'match none':"" 
-nnoremap <silent> <F7> :exe "let HlUnderCursor=exists(\"HlUnderCursor\")?HlUnderCursor*-1+1:1"<CR>
+"let HlUnderCursor=0
+"autocmd CursorMoved * exe exists("HlUnderCursor")?HlUnderCursor?printf('match IncSearch /\V\<%s\>/', escape(expand('<cword>'), '/\')):'match none':""
+"nnoremap <silent> <F7> :exe "let HlUnderCursor=exists(\"HlUnderCursor\")?HlUnderCursor*-1+1:1"<CR>
+"
+nnoremap <F7> :if AutoHighlightToggle()<Bar>set hls<Bar>endif<CR>
+function! AutoHighlightToggle()
+  let @/ = ''
+    if exists('#auto_highlight')
+      au! auto_highlight
+        augroup! auto_highlight
+        setl updatetime=4000
+      echo 'Highlight current word: off'
+        return 0
+      else
+      augroup auto_highlight
+      au!
+      au CursorHold * let @/ = '\V\<'.escape(expand('<cword>'), '\').'\>'
+      augroup end
+      setl updatetime=500
+      echo 'Highlight current word: ON'
+    return 1
+    endif
+endfunction
 
+highlight ShowWhitespace ctermbg=red guibg=red
+autocmd WinEnter * match ShowWhitespace /\t\|\s\+$/
+set list listchars=tab:»·,trail:·,extends:$,nbsp:=
 
 "------------------------------------------------ My annotation hot key
 xmap \// :norm i//<CR>
@@ -94,7 +117,7 @@ xmap \<BS> :norm x<CR>
 nmap \- <ESC>zfa{
 
 "------------------------------------------------ My Test Question function
-"------------------------------------------------ 
+"------------------------------------------------
 "{{{
 function! g:PGC_Question(note, text, complition)
     echohl Question
@@ -241,10 +264,11 @@ nmap \k <ESC>:Bookmark <C-R>=expand("<cword>")<CR>
 "------------------------------------------------ syntastic Plugin
 Plugin 'syntastic'
 execute pathogen#infect()
+nmap <F2> <ESC>:SyntasticToggleMode<CR>
 
 "----------------------------------------------- srcexpl- Plugin
 Plugin 'Source-Explorer-srcexpl.vim'
-nmap <F10> :SrcExplToggle<CR>  
+nmap <F10> :SrcExplToggle<CR>
 let g:SrcExpl_winHeight = 10
 "let g:started_path = getcwd()
 
