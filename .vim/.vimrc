@@ -121,13 +121,13 @@ nmap \- <ESC>zfa{
 "{{{
 function! g:PGC_Question(note, text, complition)
     echohl Question
-        \ | let g:str = <SID>PGC_GetInput(a:note, a:text, a:complition) |
+        \ | let g:str = g:PGC_GetInput(a:note, a:text, a:complition) |
     echohl None
     return g:str
 endfunction "}}}
 
 "{{{
-function! <SID>PGC_GetInput(note, text, complition)
+function! g:PGC_GetInput(note, text, complition)
     " Be sure synchronize
     call inputsave()
     " Get the input content
@@ -236,7 +236,6 @@ nmap \<C-P> <ESC>:CtrlPBookmarkDir<CR>
 Plugin 'FuzzyFinder'
 "nmap \f <ESC>:FufFile **/<CR>
 nmap \f <ESC>:call g:PGC_FufFile_currentPath()<CR>
-nmap \h <ESC>:FufJumpList<CR>
 nmap \F <ESC>:FufLine <C-R>=expand("<cword>")<CR><CR>
 let g:fuf_file_exclude = '\v\~$|\.(o|exe|dll|bak|orig|swp)$|(^|[/\\])\.(hg|git|bzr)($|[/\\])'
 
@@ -247,6 +246,8 @@ function! g:PGC_FufFile_currentPath()
    exe "FufFile **/"
 endfunction "}}}
 
+"------------------------------------------------ cscope_macros Plugin
+nmap \g <ESC>:FindReplace<CR>
 
 "------------------------------------------------ cscope_macros Plugin
 let g:fuf_maxMenuWidth = 200
