@@ -1051,6 +1051,11 @@ function! s:SavePattern( ... )
 				if ! isdirectory(g:PGC_Mark_Store_Path)
 					call mkdir(g:PGC_Mark_Store_Path, "p", 0755)
 				endif
+				
+				if (filereadable(g:PGC_Mark_Store_Path."/.Mark_".a:1))
+					call system("cp -r ".g:PGC_Mark_Store_Path."/.Mark_".a:1." ".g:PGC_Mark_Store_Path."/.backup_".a:1."_mark")
+				endif
+
 				let marks_file = fnamemodify(g:PGC_Mark_Store_Path."/.Mark_".a:1, ':p')
 				let data = [join(["let g:MARK_".a:1, "\"".substitute(g:MARK_{a:1}, '\', '\\\', 'g')."\""], ' = ')]
 				call writefile(data, marks_file)
@@ -1148,14 +1153,15 @@ function! mark#List()
 	echon '  (> next mark group   / current search mark)'
 	let l:nextGroupIndex = s:GetNextGroupIndex()
 	for i in range(s:markNum)
+		"{{ PGC modify
+		if empty(s:pattern[i])
+			continue
+		endif
+		"}}
+
 		execute 'echohl MarkWord' . (i + 1)
 		let c = s:GetAlternativeCount(s:pattern[i])
 		echo printf('%1s%3d%4s %s', s:GetMarker(i, l:nextGroupIndex), (i + 1), (c > 1 ? '('.c.')' : ''), s:pattern[i])
-		"{{ PGC modify
-		if empty(s:pattern[i])
-			break
-		endif
-		"}}
 	endfor
 
 	"PGC {{

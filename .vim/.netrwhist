@@ -1,3 +1,9 @@
 let g:netrw_dirhistmax  =10
-let g:netrw_dirhist_cnt =1
-let g:netrw_dirhist_1='/home001/geunchae.park/pplus/android/vendor/lge/apps/ImsA'
+let g:netrw_dirhist_cnt =7
+let g:netrw_dirhist_1='/home001/geunchae.park/.vim/bundle/Tagbar'
+let g:netrw_dirhist_2='/home001/geunchae.park/github_LG/rcs_ui_interface_up1_0'
+let g:netrw_dirhist_3='/home001/geunchae.park/ImsA/android/vendor/lge/apps/ImsA'
+let g:netrw_dirhist_4='/home001/geunchae.park/joan/.repo'
+let g:netrw_dirhist_5='/home001/geunchae.park/ImsA/android/vendor/lge/apps/ImsA'
+let g:netrw_dirhist_6='/home001/geunchae.park/.vim'
+let g:netrw_dirhist_7='/home001/geunchae.park/.vim/bundle/.vundle'

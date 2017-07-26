@@ -50,6 +50,9 @@ nmap <F9> :WorkspaceLoad <C-R>=g:PGC_Question("PGC Store Load >> ", '', "customl
 nmap \S :WorkspaceSave <C-R>=g:PGC_Question("PGC Store Save >> ", '', "customlist,PGC_Plugin#VariablesComplete")<CR><CR>
 
 
+"----------------------------------------------- using ConqueTermVSplit bash 
+command! -bar -nargs=? -complete=customlist, VSbash exe('vs | winc L | vertical res 80 | ConqueTerm bash')
+
 "------------------------------------------------ split window command key!
 nmap 0 <ESC><C-w>w
 nmap ` <ESC><C-w>
@@ -62,8 +65,8 @@ nmap <s-k> <ESC>5k
 nmap <s-up> <ESC>5k
 nmap <s-j> <ESC>5j
 nmap <s-down> <ESC>5j
-nmap E <ESC>5<C-e>
-nmap Y <ESC>5<C-y>
+nmap E 5<C-e>
+nmap Y 5<C-y>
 
 
 "------------------------------------------------ mark setting

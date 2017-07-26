@@ -1,0 +1,39 @@
+#!/bin/sh
+if [ -z $ANDROID_PRODUCT_OUT ];then
+    echo "ANDROID_PRODUCT_OUT is null"
+    exit 1;
+else
+    echo "\$ANDROID_PRODUCT_OUT = "$ANDROID_PRODUCT_OUT
+fi
+
+if [[ ! -e "$ANDROID_PRODUCT_OUT/system/lib/libims.so" ]];then
+    echo "libims.so does not exist"
+    error=1
+fi
+if [[ ! -e "$ANDROID_PRODUCT_OUT/system/priv-app/Ims6/Ims6.apk" ]];then
+    echo "Ims6.apk does not exist"
+    error=1
+fi
+
+if [[ $error == 1 ]];then
+    exit 1
+fi
+
+cp -r $ANDROID_PRODUCT_OUT/system/lib/libims.so ~/outfiles_ims6/
+cp -r $ANDROID_PRODUCT_OUT/system/priv-app/Ims6/Ims6.apk ~/outfiles_ims6/
+
+echo "Copy \"libims.so\" \"Ims6.apk\" to ~/outfiles_ims6/"
+
+if [[ -e "$ANDROID_PRODUCT_OUT/symbols/system/lib/libims.so" ]];then
+    cp -r $ANDROID_PRODUCT_OUT/symbols/system/lib/libims.so ~/outfiles_ims6/symbol/
+    echo "Copy \"libims.so\" symbol"
+fi
+
+cp -r $ANDROID_PRODUCT_OUT/system/lib/libimsmmpf.so ~/outfiles_ims6/
+cp -r $ANDROID_PRODUCT_OUT/system/lib/libimsrcsmedia.so ~/outfiles_ims6/
+cp -r $ANDROID_PRODUCT_OUT/system/lib/libimsvtjni.so ~/outfiles_ims6/
+cp -r $ANDROID_PRODUCT_OUT/system/lib/libimswms.so ~/outfiles_ims6/
+cp -r $ANDROID_PRODUCT_OUT/system/lib/libvss_ims_qcci.so ~/outfiles_ims6/
+cp -r $ANDROID_PRODUCT_OUT/system/priv-app/RCSProvider/RCSProvider.apk ~/outfiles_ims6/
+
+echo "If exist, Copy \"libimsmmpf.so\" \"libimsrcsmedia.so\" \"libimsvtjni.so\" \"libimswms.so\" \"libvss_ims_qcci.so\" \"RCSProvider.apk\""

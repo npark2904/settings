@@ -19,5 +19,12 @@ if [[ $error == 1 ]];then
     exit 1
 fi
 
-cp -r $ANDROID_PRODUCT_OUT/system/lib/libims.so ~/ && cp -r $ANDROID_PRODUCT_OUT/system/priv-app/Ims4/Ims4.apk ~/
+cp -r $ANDROID_PRODUCT_OUT/system/lib/libims.so ~/outfiles/
+cp -r $ANDROID_PRODUCT_OUT/system/priv-app/Ims4/Ims4.apk ~/outfiles/
+
 echo "Copy to root \"libims.so\" \"Ims4.apk\""
+
+if [[ -e "$ANDROID_PRODUCT_OUT/symbols/system/lib/libims.so" ]];then
+    cp -r $ANDROID_PRODUCT_OUT/symbols/system/lib/libims.so ~/outfiles/symbol/
+    echo "Copy \"libims.so\" symbol"
+fi

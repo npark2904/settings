@@ -8,9 +8,9 @@ if [ -n "$1" ];then
 #    if [ -z "$targetPath -o $? > 0 ];then
     targetPath=`readlink -e -n $1`
     if [ -z "$targetPath" ];then
-        echo 
+        echo
         echo "Directory not found!"
-        echo 
+        echo
         exit 1;
     fi
 else
@@ -28,10 +28,10 @@ rm -rf $dbPath/cscope.*
 find $targetPath/ \( -name '*.c' -o -name '*.cpp' -o -name '*.cc' -o -name '*.h' -o -name '*.s' -o -name '*.S' -o -name '*.java' -o -name '*.JAVA' -o -name '*.aidl' \) -print > $dbPath/cscope.files
 cscope -b -q -k -i $dbPath/cscope.files && mv ./cscope.* $dbPath/
 
-echo 
+echo
 echo "target=$targetPath"
 echo ">>>> DB files ($dbPath) :"
 ls -l  $dbPath/ | grep tags
 ls -l  $dbPath/ | grep cscope
 ls -l  $dbPath/ | grep PATH
-echo  
+echo
