@@ -1,30 +1,76 @@
 #!/bin/sh
+
+resultLog=""
+errorLog=""
+
+target_ims_ver=4
+target_architecture="" # empty=32bit, 64=64bit
+release_folder="$HOME/outfiles"
+
+#check args
+for idx in "$@"
+do
+    if [[ "$idx" == "ims6" ]]; then
+        target_ims_ver=6
+    elif [[ "$idx" == "64" ]]; then
+        target_architecture="64"
+    fi
+done
+
+release_folder+="/ims$target_ims_ver"
+if [[ "$target_architecture" == "64" ]]; then
+    release_folder+="/$target_architecture"
+fi
+
+libims=$ANDROID_PRODUCT_OUT/system/lib$target_architecture/libims.so
+imsApk=$ANDROID_PRODUCT_OUT/system/priv-app/Ims$target_ims_ver/Ims$target_ims_ver.apk
+libimsmmpf=$ANDROID_PRODUCT_OUT/system/lib$target_architecture/libimsmmpf.so
+libimsrcsmedia=$ANDROID_PRODUCT_OUT/system/lib$target_architecture/libimsrcsmedia.so
+libimsvtjni=$ANDROID_PRODUCT_OUT/system/lib$target_architecture/libimsvtjni.so
+libimswms=$ANDROID_PRODUCT_OUT/system/lib$target_architecture/libimswms.so
+libvss_ims_qcci=$ANDROID_PRODUCT_OUT/system/lib$target_architecture/libvss_ims_qcci.so
+RCSProviderApk=$ANDROID_PRODUCT_OUT/system/priv-app/RCSProvider/RCSProvider.apk
+
+copyToOutfolder() {
+    if [[ ! -e "$1" ]];then
+        errorLog+="\n[Error] $1 does not exist"
+    else
+        cp -r $1 $release_folder/
+        resultLog+="\n> $1 =====(copy)====> $release_folder/"
+    fi
+}
+
+#start
+
 if [ -z $ANDROID_PRODUCT_OUT ];then
     echo "ANDROID_PRODUCT_OUT is null"
     exit 1;
 else
-    echo "\$ANDROID_PRODUCT_OUT = "$ANDROID_PRODUCT_OUT
+    echo -e "\n---- Result : Copy files ----"
+    echo -e "\$ANDROID_PRODUCT_OUT = $ANDROID_PRODUCT_OUT"
 fi
 
-if [[ ! -e "$ANDROID_PRODUCT_OUT/system/lib/libims.so" ]];then
-    echo "libims.so does not exist"
-    error=1
-fi
-if [[ ! -e "$ANDROID_PRODUCT_OUT/system/priv-app/Ims4/Ims4.apk" ]];then
-    echo "Ims4.apk does not exist"
-    error=1
+#clear prev files
+rm -rf $release_folder/symbol/ $release_folder/*.so $release_folder/*.apk
+
+#copy symbol
+if [[ ! -e "$ANDROID_PRODUCT_OUT/symbols/system/lib$target_architecture/libims.so" ]];then
+    errorLog+="\n[Error] (Symbol) symbols/system/lib$target_architecture/libims.so does not exist"
+else
+    mkdir -p $release_folder/symbol
+    cp -r $ANDROID_PRODUCT_OUT/symbols/system/lib$target_architecture/libims.so $release_folder/symbol/
+    resultLog+="\n> (Symbol) \"symbols/system/lib$target_architecture/libims.so\" =====(copy)====> $release_folder/symbol/"
 fi
 
-if [[ $error == 1 ]];then
-    exit 1
-fi
+#copy so, apk
+copyToOutfolder $libims
+copyToOutfolder $imsApk
+copyToOutfolder $libimsmmpf
+copyToOutfolder $libimsrcsmedia
+copyToOutfolder $libimsvtjni
+copyToOutfolder $libimswms
+copyToOutfolder $libvss_ims_qcci
+copyToOutfolder $RCSProviderApk
 
-cp -r $ANDROID_PRODUCT_OUT/system/lib/libims.so ~/outfiles/
-cp -r $ANDROID_PRODUCT_OUT/system/priv-app/Ims4/Ims4.apk ~/outfiles/
-
-echo "Copy to root \"libims.so\" \"Ims4.apk\""
-
-if [[ -e "$ANDROID_PRODUCT_OUT/symbols/system/lib/libims.so" ]];then
-    cp -r $ANDROID_PRODUCT_OUT/symbols/system/lib/libims.so ~/outfiles/symbol/
-    echo "Copy \"libims.so\" symbol"
-fi
+echo -e "$errorLog"
+echo -e "$resultLog\n"

@@ -1,0 +1,48 @@
+#!/bin/sh
+
+echo -e "\n---- Result : Copy files ----"
+
+resultLog="\n"
+
+libims=$ANDROID_PRODUCT_OUT/system/lib64/libims.so
+ims6Apk=$ANDROID_PRODUCT_OUT/system/priv-app/Ims6/Ims6.apk
+libimsmmpf=$ANDROID_PRODUCT_OUT/system/lib64/libimsmmpf.so
+libimsrcsmedia=$ANDROID_PRODUCT_OUT/system/lib64/libimsrcsmedia.so
+libimsvtjni=$ANDROID_PRODUCT_OUT/system/lib64/libimsvtjni.so
+libimswms=$ANDROID_PRODUCT_OUT/system/lib64/libimswms.so
+libvss_ims_qcci=$ANDROID_PRODUCT_OUT/system/lib64/libvss_ims_qcci.so
+RCSProviderApk=$ANDROID_PRODUCT_OUT/system/priv-app/RCSProvider/RCSProvider.apk
+
+copyToOutfolder() {
+    if [[ ! -e "$1" ]];then
+        echo "Error. $1 does not exist"
+    else
+        cp -r $1 ~/outfiles_ims6/
+        resultLog+="> $1 ====> to ~/outfiles_ims6/\n"
+    fi
+}
+
+if [ -z $ANDROID_PRODUCT_OUT ];then
+    echo "ANDROID_PRODUCT_OUT is null"
+    exit 1;
+else
+    echo -e "\$ANDROID_PRODUCT_OUT = $ANDROID_PRODUCT_OUT \n"
+fi
+
+if [[ ! -e "$ANDROID_PRODUCT_OUT/symbols/system/lib64/libims.so" ]];then
+    echo "(Symbol) symbols/system/lib64/libims.so does not exist"
+else
+    cp -r $ANDROID_PRODUCT_OUT/symbols/system/lib64/libims.so ~/outfiles_ims6/symbol/
+    resultLog+="> (Symbol) \"symbols/system/lib64/libims.so\" ====> to ~/outfiles_ims6/symbol/\n"
+fi
+
+copyToOutfolder $libims
+copyToOutfolder $ims6Apk
+copyToOutfolder $libimsmmpf
+copyToOutfolder $libimsrcsmedia
+copyToOutfolder $libimsvtjni
+copyToOutfolder $libimswms
+copyToOutfolder $libvss_ims_qcci
+copyToOutfolder $RCSProviderApk
+
+echo -e $resultLog

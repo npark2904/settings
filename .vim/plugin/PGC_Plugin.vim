@@ -68,5 +68,3 @@ endfunction
 
 command! -bar -nargs=? -complete=customlist,PGC_Plugin#VariablesComplete WorkspaceSave call PGC_Plugin#Save_Workspace(<f-args>)
 command! -bar -nargs=? -complete=customlist,PGC_Plugin#VariablesComplete WorkspaceLoad call PGC_Plugin#Load_StoredWorkspace(<f-args>)
-
-

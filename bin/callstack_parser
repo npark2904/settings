@@ -10,8 +10,7 @@ parseLog()
             if [[ ${args[i]} == "#"* ]]; then
                 Address=${args[i+2]}
 
-                IFS='/' read -a tmp <<< ${args[i+3]}
-                IFS=' ' read -a args2 <<< $tmp
+                IFS='/' read -a args2 <<< ${args[i+3]}
                 for ((j=0;j<${#args2[@]};j++)) do
                     if [[ ${args2[j]} == *".so" ]]; then
                         Sofile="$filePath/${args2[j]}"

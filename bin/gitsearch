@@ -1,0 +1,214 @@
+#!/bin/bash
+
+############################## user setting ##############################
+#[[
+dbPath=`readlink -e -n ~/db/gitsearch/`
+resultFile="$dbPath/gitsearch_result"
+branchListFile=$dbPath/branches_list
+targetGit="android/vendor/lge/apps/ImsA/"
+defaultMaxOption=-5
+#]]
+##########################################################################
+
+
+gitPath=`readlink -e -n ${dbPath}/IMS_sync/${targetGit}`
+fullOptionMode=
+text=
+optionLine=
+targetBranch=
+
+############################ define function #############################
+#[[
+
+searchOnList() {
+    cd $gitPath
+
+    echo -e "\n>>> Searching in branch list ... ($optionLine)\n"
+
+    echo -e "commit 0000000000000000000000000000000000000000" >> $resultFile
+    echo -e "----------------------------------------------------------//for vim color\n" >> $resultFile
+    index=0
+    while read line;do
+        if [[ "${line}" == "#"* ]]; then
+            continue;
+        fi
+
+        echo -e "\n<<<<<<<<<< TargetBranch : ${line} >>>>>>>>>>\n" | tee -a $resultFile
+
+        eval "git log remotes/lr/${line} $optionLine | tee -a $resultFile"
+
+         echo -e "\n----------------------------------------------------------\n" | tee -a $resultFile
+        ((index++))
+    done < "$branchListFile"
+    vim $resultFile
+    echo -e "\nTarget branches count: $index"
+    echo -e ">>> Finish searching on List - result file : $resultFile\n"
+}
+
+searchOnBranch() {
+    cd $gitPath
+
+    echo -e "\n>>> Searching in $targetBranch...\n"
+
+    echo -e "============================================================================"
+    echo "  git log remotes/lr/$targetBranch $optionLine"
+    echo -e "=============================== << Result >> ===============================\n"
+
+    eval "git log remotes/lr/$targetBranch $optionLine | tee $resultFile"
+
+    vim $resultFile
+
+    echo -e "\n--------------------------------------------------------"
+    echo -e "\n>>> Finish Searching on Branch - result file : $resultFile\n"
+}
+
+printHelp() {
+    echo ""
+    echo "  gitsearch  [text|cmd] [options|targetBranch]"
+    echo ""
+    echo "  cmd : first arg is searching text or management option."
+    echo "    -i, -init : source remove and download (~/db/gitsearch/IMS_sync/)"
+    echo "    -u, -update : source update using git fetch"
+    echo "    -b, -branch : set target branch list"
+    echo "    -r, -result : view previous result"
+    echo "    -log [-b=targetBranch] : do not use auto generating and directly pass to git log."
+    echo "                             (e.g. gitsearch -log -b=branch --grep=\"Text\" --author=\"name\")"
+    echo "    -s, -show {commitId} : execute 'git show'"
+    echo ""
+    echo "  options : searching options are passed to 'git log'"
+    echo "    [--oneline,  --name-only,  --binary,  -0..-99, etc...]"
+    echo "    [--f={fileName} : use to find some code string in any file]"
+    echo ""
+}
+
+handleMainCMD() { # arg1=option, arg2=commitId
+    if [ "$1" == "-u" -o "$1" == "-update" ]; then
+    #if [ ! -z $1 ] && [ -z `echo ${1#-*}` ]; then
+        cd $gitPath
+        echo "start fetch : ${gitPath}"
+        git fetch
+        exit 0
+    elif [ "$1" == "-h" -o "$1" == "-help" ]; then
+        printHelp
+        exit 0
+    elif [ "$1" == "-b" -o "$1" == "-branch" ]; then
+        vim $branchListFile
+        exit 0
+    elif [ "$1" == "-r"  -o "$1" == "-result" ]; then
+        vim $resultFile
+        exit 0
+    elif [ "$1" == "-i" -o "$1" == "-init" ]; then
+        rm -rf ${dbPath}/IMS_sync
+        mkdir -p ${dbPath}/IMS_sync
+        cd ${dbPath}/IMS_sync
+        repolr -b lamp_o_release -m msm8996/msm8996.xml && repo sync -qcj8 ${targetGit} && repo start lamp_o_release --all \
+            && cd ${dbPath}/IMS_sync/${targetGit} && git fetch
+        exit 0
+    elif [ "$1" == "-log" ]; then
+        fullOptionMode=1
+    elif [ "$1" == "-s" -o "$1" == "-show" ]; then
+        if [ -z $2 ]; then
+            echo " gitsearch -show {commitId}"
+        else
+            cd $gitPath
+            git show $2
+        fi
+        exit 0
+    else
+        echo "gitsearch : $1 is invalid cmd"
+        exit 1
+    fi
+}
+
+makeOptionLine() {
+    if [[ $fullOptionMode == 1 ]]; then
+        optionLine="$defaultMaxOption ${LOGCMDS[@]} "
+    else
+        optionLine="--grep=\"${text}\" $defaultMaxOption " #ps. Auto '\' add code : $(printf %q ${text})
+        for ((i=0;i<${#CMDS[@]};i++)) do
+            if [[ ${CMDS[i]} == "--f="* ]]; then
+                # replace *(){}[]" char
+                replacedText=${text//"*"/"\*"}
+                replacedText=${replacedText//"("/"\("}
+                replacedText=${replacedText//")"/"\)"}
+                replacedText=${replacedText//"{"/"\{"}
+                replacedText=${replacedText//"}"/"\}"}
+                replacedText=${replacedText//"["/"\["}
+                replacedText=${replacedText//"["/"\[}"}
+                replacedText=${replacedText//"\""/"\\\""}
+                optionLine="-G \"$replacedText\" $defaultMaxOption "
+
+                optionLine+="-- */`echo ${CMDS[i]##--f=}` "
+            else
+                optionLine+="${CMDS[i]} "
+            fi
+        done
+    fi
+}
+
+
+#]]
+##########################################################################
+
+############################## process run ###############################
+#[[
+
+if [ -z "$1" ]; then
+    echo " gitsearch [text|cmd] [options|targetBranch]"
+    echo " gitsearch -h or -help"
+    exit 1
+fi
+
+declare -a CMDS
+declare -a STRS
+declare -a LOGCMDS
+
+if [[ "$1" == "-"* ]]; then
+    idx=1
+    handleMainCMD "$1" $2
+else
+    idx=0
+fi
+
+for idx in "$@"
+do
+    if [[ $fullOptionMode == 1 ]]; then
+        if [[ "$idx" == "-b="* ]]; then
+            targetBranch=`echo ${idx##-b=}`
+        elif [[ "$idx" == "-log" ]]; then
+            continue;
+        else
+            LOGCMDS+=($idx)
+        fi
+    else
+        if [[ "$idx" == "-"* ]]; then
+            CMDS+=("$idx")
+        else
+            STRS+=("$idx")
+        fi
+        targetBranch=${STRS[1]}
+    fi
+done
+
+text=${STRS[0]}
+makeOptionLine
+
+if [ -f $resultFile ]; then
+    rm $resultFile
+fi
+
+if [ ! -z $targetBranch ]; then
+    searchOnBranch
+else
+    if [ ! -e "$branchListFile" ]; then
+        echo "\"$branchListFile\" does not exist"
+        exit 1
+    fi
+    searchOnList
+fi
+
+exit 0
+
+#]]
+##########################################################################
+

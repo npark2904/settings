@@ -87,26 +87,6 @@ branch_color ()
    echo -ne $color
 }
 
-my_branch ()
-{
-   if git rev-parse --git-dir >/dev/null 2>&1
-   then
-      gitver=$(git branch 2>/dev/null| sed -n '/^\*/s/^\* //p')
-
-	  color=""
-	  git_status="`git status -z`"
-	  if [ -n $git_status ] 
-	  then
-		color="${c_green}"
-	  else
-		color=${c_red}
-	  fi
-   else
-      return 0
-   fi
-   echo -ne "${color}[${gitver}]${c_sgr0} "
-}
-
  
 #export PS1='\u@\h\[${c_sgr0}\]:\W\[${c_sgr0}\] (\[$(branch_color)\]$(parse_git_branch)\[${c_sgr0}\])\$ '
 

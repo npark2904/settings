@@ -50,8 +50,37 @@ nmap <F9> :WorkspaceLoad <C-R>=g:PGC_Question("PGC Store Load >> ", '', "customl
 nmap \S :WorkspaceSave <C-R>=g:PGC_Question("PGC Store Save >> ", '', "customlist,PGC_Plugin#VariablesComplete")<CR><CR>
 
 
-"----------------------------------------------- using ConqueTermVSplit bash 
-command! -bar -nargs=? -complete=customlist, VSbash exe('vs | winc L | vertical res 80 | ConqueTerm bash')
+"----------------------------------------------- excute bash cmd "screen -R"
+command! -bar -nargs=? -complete=customlist, SR exe('!screen -R')
+
+"----------------------------------------------- using ConqueTermVSplit bash
+command! -bar -nargs=? -complete=customlist, BashVim exe('vs | winc L | vertical res 80 | ConqueTerm bash')
+
+"----------------------------------------------- git blame for current file
+command! -bar -nargs=? -complete=customlist, Blamethis exe('silent call g:PGC_git_blame_this()')
+function! g:PGC_git_blame_this() "{{{
+    let l:currentLine = line(".") + 1
+    let l:currentfile = expand('%:~')
+    silent! call system("rm -rf ~/.vim/.tmp/blame")
+"    silent! exe("vs ~/.vim/.tmp/blame")
+    silent! exe("tabnew ~/.vim/.tmp/blame")
+"    silent! exe("setlocal nowrap | setlocal nonu")
+"    silent! exe("winc H | vertical res 57 | r !git blame ".l:currentfile)
+    silent! exe("r !git blame ".l:currentfile)
+    silent! exe("1 | delete |".l:currentLine)
+    silent! exe("w!")
+endfunction "}}}
+
+command! -bar -nargs=? -complete=customlist, BlamethisLine exe('silent call g:PGC_git_blame_this_line()')
+function! g:PGC_git_blame_this_line() "{{{
+    let l:currentLine = line(".") + 1
+    let l:currentfile = expand('%:~')
+    silent! call system("rm -rf ~/.vim/.tmp/blame")
+    silent! exe("sv ~/.vim/.tmp/blame")
+    silent! exe("winc J | res 18 | r !git blame ".l:currentfile)
+    silent! exe("1 | delete |".l:currentLine)
+    silent! exe("w!")
+endfunction "}}}
 
 "------------------------------------------------ split window command key!
 nmap 0 <ESC><C-w>w
@@ -137,13 +166,13 @@ function! g:PGC_GetInput(note, text, complition)
     let l:input = input(a:note, a:text, a:complition)
     " Save the content
     call inputrestore()
-    " return value 
+    " return value
     return l:input
 endfunction " }}}
 
 "vmap \q :call g:PGC_Question("Question test: ")<CR>
 
-"------------------------------------------------ 
+"------------------------------------------------
 
 
 "------------------------------------------------ remember before cursor position
@@ -154,38 +183,45 @@ au BufReadPost *
 
 "------------------------------------------------ Set cscope & ctag DB file
 
-set csprg=/usr/bin/cscope
-set csto=0
-set cst
-set nocsverb
-if filereadable("./cscope.out")
-    cs add cscope.out
-else
-    cs add ~/db/cscope.out
-endif
-set csverb
+"make/load ctag and cscope
+"command! -bar -nargs=? DBMake exe('!mkctags_cscope')
+command! -bar -nargs=? DBLoad exe('silent call g:PGC_load_ctag_cscope()')
+function! g:PGC_load_ctag_cscope()
+    cs kill -1
+    set csprg=/usr/bin/cscope
+    set csto=0
+    set cst
+    set nocsverb
+    if filereadable("./cscope.out")
+        cs add cscope.out
+    else
+        cs add ~/db/cscope.out
+    endif
+    set csverb
 
-if filereadable("./tags")
-    set tags=./tags
-else
-    set tags=~/db/tags
-endif
+    if filereadable("./tags")
+        set tags=./tags
+    else
+        set tags=~/db/tags
+    endif
+endfunction "}}}
+call g:PGC_load_ctag_cscope()
 
-"---------------------------------------------------------------- 
+"----------------------------------------------------------------
 "------------------------------------------------ vundle settings
-"---------------------------------------------------------------- 
+"----------------------------------------------------------------
 
 set nocompatible
 filetype off
- 
+
 set rtp+=~/.vim/bundle/vundle/
- 
+
 call vundle#rc()
 Bundle 'gmarik/vundle'
 "Bundle 'git://git.wincent.com/command-t.git'
 Bundle 'command-t'
 Plugin 'L9'
- 
+
 filetype plugin indent on
 
 "------------------------------------------------ NERDTree Plugin
@@ -214,7 +250,7 @@ let g:conoline_color_normal_light = 'guibg=black guifg=white gui=bold ctermbg=23
 let g:conoline_color_insert_light = 'guibg=black guifg=white gui=bold ctermbg=black'
 let g:conoline_color_normal_nr_light = 'ctermbg=154 ctermfg=022'
 let g:conoline_color_insert_nr_light = 'ctermbg=white ctermfg=026'
-let g:conoline_auto_enable = 1 
+let g:conoline_auto_enable = 1
 
 "------------------------------------------------ Powerline Bundle
 "Bundle 'https://github.com/Lokaltog/vim-powerline.git'
