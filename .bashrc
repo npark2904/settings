@@ -156,4 +156,16 @@ alias ,,='popd >/dev/null'
 alias dirs='dirs -v'
 alias cd='pushd >/dev/null'
 
+#PGC constants
 export mirror='--reference=/home001/mirror/lr/'
+
+#PGC functions
+function PGC_rulecheckerUpdate() {
+    pushd ~/bin/ && rm rulechecker.sh && wget http://atos-storage.lge.net:8080/results/rulechecker/rulechecker.sh --no-check-certificate && chmod +x rulechecker.sh && ll ~/bin/rulechecker.sh && popd
+}
+
+function PGC_rm_orig() {
+    echo --deleting orig files--
+    find . -name *.orig
+    rm `find . -name *.orig`
+}
