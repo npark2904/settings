@@ -1,0 +1,45 @@
+#!/bin/bash
+## version: v1.0
+## owner : geunchae.park
+
+echo
+
+#check args
+if [ -z "$1" ]; then
+    echo -e "[Error] input Commit-ID or log number option(-1, -2 ...)\n"
+    exit -1
+fi
+
+if [[ "$1" == "-"* ]]; then
+    filelist=`git log $1 --name-only | grep --regexp=".cpp$\|\.c$"`
+else
+    filelist=`git log $1 --name-only -1 | grep --regexp=".cpp$\|\.c$"`
+fi
+
+
+if [ $? != 0 ]; then
+    echo -e "\n[Error] check the option or current path\n"
+    exit -1
+fi
+
+runRuleChecker() { #arg1=path
+    echo $1
+    rulechecker.sh $1
+}
+
+FinishChecker() {
+    if [[ -e "pathFinder.jar" ]];then
+        rm pathFinder.jar
+    fi
+
+    if [[ -e "rulechecker.jar" ]];then
+        rm rulechecker.jar
+    fi
+}
+
+while read line;
+do
+    runRuleChecker "./"$line
+done <<< "$filelist"
+
+FinishChecker

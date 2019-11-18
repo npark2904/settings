@@ -1,0 +1,319 @@
+#!/bin/sh
+## owner : geunchae.park
+## version history :
+##  190501 v3.4 auto update
+##  190508 v3.5 bugfix
+##  190710 v3.6 auto select 32bit or 64bit
+##  190715 v3.7 download bat file
+##  190822 v3.8 support changing script name & bugfix
+##  191030 v3.9 change script update server URL (=FTP server)
+##  191111 v4.0 add default output (RCSMessageProvider)
+##  191113 v4.1 back up latest script version, add default FTP copy list, improvement of checking file existence
+scriptVersion="4.1"
+
+################################################################################################
+##################################### set default value ########################################
+################################################################################################
+target_ims_ver=6 #default ims version (4 or 6)
+target_os="qos" #default Q-OS
+localReleasePath="$HOME/outfiles"
+architecturePostfix=64 #default for FTP uploading case
+MYFTP_URL=10.158.10.14 # shoud use linux server
+MYFTP_PATH="/volume1/Share/RCS_SSH_RELEASE"  # Must create manually
+MYFTP_ID=rcs-share
+MYFTP_PW=lge123
+
+setDefaultLocalCopyFiles() {
+    ################################# define output file list for local copy  ##################################
+    buildOutputFiles+=("$ANDROID_PRODUCT_OUT/$imsBuildOutputPath/lib$architecturePostfix/libims${fileNamePostfix}.so")
+    buildOutputFiles+=("$ANDROID_PRODUCT_OUT/$imsBuildOutputPath/priv-app/Ims$target_ims_ver/Ims$target_ims_ver.apk")
+    buildOutputFiles+=("$ANDROID_PRODUCT_OUT/$imsBuildOutputPath/priv-app/RCSProvider/RCSProvider.apk")
+    buildOutputFiles+=("$ANDROID_PRODUCT_OUT/$imsBuildOutputPath/priv-app/RCSMessageProvider/RCSMessageProvider.apk")
+    #buildOutputFiles+=("$ANDROID_PRODUCT_OUT/$imsBuildOutputPath/lib$architecturePostfix/libimsmmpf${fileNamePostfix}.so")
+    #buildOutputFiles+=("$ANDROID_PRODUCT_OUT/$imsBuildOutputPath/lib$architecturePostfix/libimsrcsmedia${fileNamePostfix}.so")
+    #buildOutputFiles+=("$ANDROID_PRODUCT_OUT/$imsBuildOutputPath/lib$architecturePostfix/libimsvtjni${fileNamePostfix}.so")
+    #buildOutputFiles+=("$ANDROID_PRODUCT_OUT/$imsBuildOutputPath/lib$architecturePostfix/libimswms${fileNamePostfix}.so")
+}
+
+setDefaultFTPUploadFiles() {
+    ###################################### define file list for FTP copy #######################################
+    FTPTargetFiles+=("libims${fileNamePostfix}.so")
+    FTPTargetFiles+=("Ims${target_ims_ver}.apk")
+    FTPTargetFiles+=("RCSProvider.apk")
+    FTPTargetFiles+=("RCSMessageProvider.apk")
+    FTPTargetFiles+=("ims_info.log")
+}
+
+################################################################################################
+################################################################################################
+
+declare -a FTPTargetFiles
+declare -a filepathArgs
+declare -a buildOutputFiles
+scriptFileName=`basename "$0"`
+scriptServerURL=10.158.10.14
+isFTPRelease=false
+isFTPforSelectedFile=false;
+inputArchitecture=
+imsBuildOutputPath=
+fileNamePostfix=
+
+#check args
+for idx in "$@"
+do
+    if [[ "$idx" == "ims6" ]]; then
+        target_ims_ver=6
+    elif [[ "$idx" == "ims4" ]]; then
+        target_ims_ver=4
+    elif [[ "$idx" == "32" ]]; then
+        inputArchitecture="32"
+    elif [[ "$idx" == "64" ]]; then
+        inputArchitecture="64"
+    elif [ "$idx" == "qos" -o "$idx" == "pos" -o "$idx" == "nos" -o "$idx" == "oos" ]; then
+        target_os=$idx
+    elif [[ "$idx" == "-fa" ]]; then
+        isFTPRelease=true
+    elif [[ "$idx" == "-fs" ]]; then
+        isFTPRelease=true
+        isFTPforSelectedFile=true
+    elif [ "$idx" == "-u" -o "$idx" == "-update" ]; then
+        echo
+        remoteVersion=`curl -X GET http://${scriptServerURL}/release/outfileRelease/version -s`
+        if [[ "$scriptVersion" == "$remoteVersion" ]]; then
+            echo "It is Latest Version"
+        else
+            #cd ~/bin/ && wget -O ${scriptFileName} ftp://${MYFTP_URL}${MYFTP_PATH}/script/${scriptFileName} --ftp-user=${MYFTP_ID} --ftp-password=${MYFTP_PW} && chmod 777 ${scriptFileName}
+            cd ~/bin/ && wget -O ${scriptFileName} http://${scriptServerURL}/release/outfileRelease/ims_release && chmod 777 ${scriptFileName}
+            backupScriptName=${scriptFileName}_backup_${scriptVersion}
+            cd ~/bin/ && rm ${scriptFileName}_backup_* 2>/dev/null
+            cd ~/bin/ && cp ${scriptFileName} $backupScriptName
+        fi
+        echo
+        exit 0
+    elif [ "$idx" == "-h" -o "$idx" == "-help" -o "$idx" == "--h" -o "$idx" == "--help" ]; then
+        echo " Release ims to local            : ${scriptFileName} [ims6|ims4] [64|32] [qos|pos|oos|nos]"
+        echo " Release ims to FTP              : ${scriptFileName} [-fa] [ims6|ims4] [64|32]"
+        echo " upload selected files to FTP  s : ${scriptFileName} [-fs] [filename|filepath]"
+        echo " Update script to latest version : ${scriptFileName} [-u|-update]"
+        echo
+        exit 0
+    else
+        filepathArgs+=("$idx")
+    fi
+done
+
+#functions
+init() {
+    if [[ "$target_os" == "pos" || "$target_os" == "qos"  ]]; then
+        imsBuildOutputPath="system/product"
+        if [ ! -d "$ANDROID_PRODUCT_OUT/$imsBuildOutputPath" ];then
+            imsBuildOutputPath="product"
+        fi
+        fileNamePostfix=".lge"
+    else
+        imsBuildOutputPath="system"
+        fileNamePostfix=""
+    fi
+
+    if [[ "$inputArchitecture" == "64" ]]; then
+        architecturePostfix="64"
+    elif [[ "$inputArchitecture" == "32" ]]; then
+        architecturePostfix=""
+    else
+        if [[ $isFTPRelease == false ]]; then
+            #If no-input architecture, check existing so file (64 -> 32 order)
+            if [[ -f $ANDROID_PRODUCT_OUT/$imsBuildOutputPath/lib64/libims${fileNamePostfix}.so ]];then
+                architecturePostfix="64"
+                inputArchitecture="64"
+            elif [[ -f $ANDROID_PRODUCT_OUT/$imsBuildOutputPath/lib/libims${fileNamePostfix}.so ]];then
+                architecturePostfix=""
+                inputArchitecture="32"
+            else
+                echo "There is no any libims${fileNamePostfix}.so file (both 64 and 32bit)"
+                exit 1
+            fi
+        fi
+    fi
+
+    #set release folder path
+    localReleasePath+="/ims$target_ims_ver"
+    if [[ "$architecturePostfix" == "" ]]; then
+        localReleasePath+="/32"
+    fi
+
+    if [[ $isFTPforSelectedFile == false ]]; then
+        setDefaultFTPUploadFiles
+    fi
+
+    setDefaultLocalCopyFiles
+}
+
+copyToOutfolder() { # arg1=output file path
+    if [[ ! -e "$1" ]];then
+        errorLog+="\n[Error] $1 does not exist"
+    else
+        cp -r $1 $localReleasePath/
+        resultLog+="\n> $1 =====(copy)====> $localReleasePath/"
+    fi
+}
+
+StartLocalRelease() {
+    resultLog=""
+    errorLog=""
+
+    if [ -z $ANDROID_PRODUCT_OUT ];then
+        echo "ANDROID_PRODUCT_OUT is null"
+        exit 1;
+    else
+        init
+
+        echo -e "\n---- Result : Copy files ----"
+        echo -e "\$ANDROID_PRODUCT_OUT = $ANDROID_PRODUCT_OUT"
+        echo -e "OS = $target_os"
+        echo -e "Ims git = Ims$target_ims_ver"
+        if [[ $architecturePostfix == "64" ]]; then
+            strBit="64bit"
+        else
+            strBit="32bit"
+        fi
+        echo -e "Architecture = $strBit"
+    fi
+
+    # backup previous files
+    rm -rf $localReleasePath/backup/ 2>/dev/null
+    mkdir -p $localReleasePath/backup/ 2>/dev/null
+    mv $localReleasePath/symbol/ $localReleasePath/backup/ 2>/dev/null
+    mv $localReleasePath/*.log $localReleasePath/backup/ 2>/dev/null
+    mv $localReleasePath/*.so $localReleasePath/backup/ 2>/dev/null
+    mv $localReleasePath/*.apk $localReleasePath/backup/ 2>/dev/null
+
+    #copy symbol
+    if [[ ! -e "$ANDROID_PRODUCT_OUT/symbols/$imsBuildOutputPath/lib$architecturePostfix/libims${fileNamePostfix}.so" ]];then
+        errorLog+="\n[Error] (Symbol) symbols/$imsBuildOutputPath/lib$architecturePostfix/libims${fileNamePostfix}.so does not exist"
+    else
+        mkdir -p $localReleasePath/symbol
+        cp -r $ANDROID_PRODUCT_OUT/symbols/$imsBuildOutputPath/lib$architecturePostfix/libims${fileNamePostfix}.so $localReleasePath/symbol/
+        resultLog+="\n> (Symbol) \"symbols/$imsBuildOutputPath/lib$architecturePostfix/libims${fileNamePostfix}.so\" =====(copy)====> $localReleasePath/symbol/"
+    fi
+
+    #copy so, apk
+    for ((i=0;i<${#buildOutputFiles[@]};i++)) do
+        copyToOutfolder ${buildOutputFiles[i]}
+    done
+
+    #save IMS git info
+    imsGitPath="$ANDROID_BUILD_TOP/vendor/lge/apps/Ims"
+    if [[ $target_ims_ver == 4 ]]; then
+        $imsGitPath+=$target_ims_ver
+    fi
+    cd $imsGitPath
+    echo -e "\n##### Target Product #####\n$TARGET_PRODUCT" >> $localReleasePath/ims_info.log
+    echo -e "\n##### Ims path #####\n`pwd`" >> $localReleasePath/ims_info.log
+    echo -e "\n##### Ims git status #####" >> $localReleasePath/ims_info.log
+    git status >> $localReleasePath/ims_info.log
+    echo -e "\n##### Ims git log #####" >> $localReleasePath/ims_info.log
+    git log --oneline -50 >> $localReleasePath/ims_info.log
+
+    echo -e "$errorLog""$resultLog\n"
+
+    #download bat file
+    if [[ "$target_os" == "pos" || "$target_os" == "qos"  ]]; then
+        batFileName="ims${target_ims_ver}_push_pos_qos_${inputArchitecture}_apkso.bat"
+    else #nos oos
+        batFileName="ims${target_ims_ver}_push_nos_oos_${inputArchitecture}_apkso.bat"
+    fi
+    echo -e "Now push using [$batFileName] file\n"
+    cd $localReleasePath && wget -O $batFileName http://${scriptServerURL}/release/outfileRelease/$batFileName -q && chmod 777 $batFileName
+}
+
+upload() { # arg1=path arg=local file path
+    if [[ ! -e $2 ]];then
+        echo -e "\n[Fail to upload] $2 does not exist"
+    else
+    echo -e "\nStart uploading [ $2 ] to [ $1 ] ..."
+
+cd `dirname $2`
+ftp -n $MYFTP_URL <<EOF
+user $MYFTP_ID $MYFTP_PW
+cd $1
+verbose
+put `basename $2`
+bye
+EOF
+fi
+}
+
+StartFTPRelease() {
+    init
+
+    newFolder=`date '+%Y%m%d_%H%M%S'`
+    if [[ $isFTPforSelectedFile == true ]]; then
+        #check ftp for selected file
+        for ((i=0;i<${#filepathArgs[@]};i++)) do
+            if [[ -f ${filepathArgs[i]} ]];then
+                FTPTargetFiles+=("`readlink -e -n ${filepathArgs[i]}`")
+            else
+                echo "[ ${filepathArgs[i]} ] file does not exist"
+                exit -1
+            fi
+        done
+
+        if [[ ${#FTPTargetFiles[@]} == "0"  ]];then
+            echo "input one or more files"
+            exit -1
+        fi
+
+        echo
+        echo "[ ${#FTPTargetFiles[@]} file release via FTP ]"
+        newFolder+="_${#FTPTargetFiles[@]}_file_$USER"
+    else
+        if [[ $architecturePostfix == "64" ]]; then
+            strBit="64bit"
+        else
+            strBit="32bit"
+        fi
+        echo
+        echo "[ $target_os Ims$target_ims_ver $strBit release via FTP ]"
+        newFolder+="_ims${target_ims_ver}_${strBit}_$USER"
+    fi
+
+    for ((i=0;i<${#FTPTargetFiles[@]};i++)) do
+        echo " ${FTPTargetFiles[i]}"
+    done
+
+    echo
+    echo "FTP : $MYFTP_URL"
+    echo "ID : $MYFTP_ID"
+    echo "Create new folder [ $newFolder ] ..."
+ftp -n $MYFTP_URL  <<EOF
+user $MYFTP_ID $MYFTP_PW
+cd $MYFTP_PATH
+mkdir $newFolder
+bye
+EOF
+
+    uploadPath=$MYFTP_PATH"/"$newFolder
+
+    # upload start
+    for ((i=0;i<${#FTPTargetFiles[@]};i++)) do
+        if [[ $isFTPforSelectedFile == true ]]; then
+            upload $uploadPath ${FTPTargetFiles[i]}
+        else
+            upload $uploadPath "$localReleasePath/${FTPTargetFiles[i]}"
+        fi
+    done
+}
+
+################
+## main start ##
+################
+
+if [[ $isFTPRelease == false ]]; then
+    StartLocalRelease
+else
+    StartFTPRelease
+
+    echo
+    echo "-- Finish FTP Release --"
+    echo
+fi

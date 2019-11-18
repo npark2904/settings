@@ -165,7 +165,14 @@ function PGC_rulecheckerUpdate() {
 }
 
 function PGC_rm_orig() {
-    echo --deleting orig files--
+    echo --deleting .orig files--
     find . -name *.orig
     rm `find . -name *.orig`
+}
+
+function PGC_help() {
+    echo "------ PGC Command Helper!!! -----"
+    echo "[Copy from other build server] : rsync -azuv -e ssh Id@Domain:/RemotePath /LocalPath"
+    echo "[Create symbolic link]       : ln -s Target LinkName"
+    echo "[Git push with gerrit]       : git push {remote} HEAD:refs/{for}/{Branch}"
 }

@@ -82,6 +82,16 @@ function! g:PGC_git_blame_this_line() "{{{
     silent! exe("w!")
 endfunction "}}}
 
+
+"------------------------------------------------ real remove d, dd!
+nnoremap x "_x
+nnoremap d "_d
+nnoremap D "_D
+vnoremap d "_d
+nnoremap <leader>d ""d
+nnoremap <leader>D ""D
+vnoremap <leader>d ""d
+
 "------------------------------------------------ split window command key!
 nmap 0 <ESC><C-w>w
 nmap ` <ESC><C-w>
@@ -185,9 +195,9 @@ au BufReadPost *
 
 "make/load ctag and cscope
 "command! -bar -nargs=? DBMake exe('!mkctags_cscope')
-command! -bar -nargs=? DBLoad exe('silent call g:PGC_load_ctag_cscope()')
+command! -bar -nargs=? DBLoad exe('call g:PGC_load_ctag_cscope()')
 function! g:PGC_load_ctag_cscope()
-    cs kill -1
+    silent cs kill -1
     set csprg=/usr/bin/cscope
     set csto=0
     set cst
@@ -204,8 +214,10 @@ function! g:PGC_load_ctag_cscope()
     else
         set tags=~/db/tags
     endif
+
+    echo "[Load complete cscope & ctag]"
 endfunction "}}}
-call g:PGC_load_ctag_cscope()
+silent call g:PGC_load_ctag_cscope()
 
 "----------------------------------------------------------------
 "------------------------------------------------ vundle settings
@@ -300,11 +312,6 @@ let g:toggle_bookmark_key = "<F6>"
 "------------------------------------------------ simple_bookmark hot key
 nmap <F6> <ESC>:CopenBookmarks<CR>
 nmap \k <ESC>:Bookmark <C-R>=expand("<cword>")<CR>
-
-"------------------------------------------------ syntastic Plugin
-Plugin 'syntastic'
-execute pathogen#infect()
-nmap <F2> <ESC>:SyntasticToggleMode<CR>
 
 "----------------------------------------------- srcexpl- Plugin
 Plugin 'Source-Explorer-srcexpl.vim'
