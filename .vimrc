@@ -1,1 +1,1 @@
-.vim/.vimrc
+/home001/geunchae.park/.vim/.vimrc

@@ -23,6 +23,8 @@ let g:molokai_original = 1
 let g:rehash256 = 1
 colorscheme molokai
 
+set nofixeol "not add new line at the last
+
 "color molokai
 "set background=dark
 
@@ -43,11 +45,11 @@ nmap \s <ESC><Plug>MarkSet<ESC>:tab cs find s <C-R>=expand("<cword>")<CR><CR>
 nmap <F5> <ESC>:Marks<CR>
 "nmap \} <ESC><Plug>MarkSet<C-W>g}
 
-"------------------------------------------------ PGC_Plugin
+"------------------------------------------------ PGC_Workspace
 let g:PGC_Store_Path = $HOME."/.vim_PGC_store"
 let g:PGC_Mark_Store_Path = g:PGC_Store_Path
-nmap <F9> :WorkspaceLoad <C-R>=g:PGC_Question("PGC Store Load >> ", '', "customlist,PGC_Plugin#VariablesComplete")<CR><CR>
-nmap \S :WorkspaceSave <C-R>=g:PGC_Question("PGC Store Save >> ", '', "customlist,PGC_Plugin#VariablesComplete")<CR><CR>
+nmap <F9> :WorkspaceLoad <C-R>=g:PGC_Question("PGC Store Load >> ", '', "customlist,PGC_Workspace#VariablesComplete")<CR><CR>
+nmap \S :WorkspaceSave <C-R>=g:PGC_Question("PGC Store Save >> ", '', "customlist,PGC_Workspace#VariablesComplete")<CR><CR>
 
 
 "----------------------------------------------- excute bash cmd "screen -R"
@@ -92,6 +94,9 @@ nnoremap <leader>d ""d
 nnoremap <leader>D ""D
 vnoremap <leader>d ""d
 
+"------------------------------------------------ word copy & select
+vnoremap v iw
+
 "------------------------------------------------ split window command key!
 nmap 0 <ESC><C-w>w
 nmap ` <ESC><C-w>
@@ -106,7 +111,6 @@ nmap <s-j> <ESC>5j
 nmap <s-down> <ESC>5j
 nmap E 5<C-e>
 nmap Y 5<C-y>
-
 
 "------------------------------------------------ mark setting
 map <Space> <Plug>MarkSet

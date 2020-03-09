@@ -1,0 +1,935 @@
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900   1) /*
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900   2)  * Copyright (C) 2017 The Android Open Source Project
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900   3)  *
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900   4)  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900   5)  * except in compliance with the License. You may obtain a copy of the License at
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900   6)  *
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900   7)  *      http://www.apache.org/licenses/LICENSE-2.0
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900   8)  *
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900   9)  * Unless required by applicable law or agreed to in writing, software distributed under the
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  10)  * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  11)  * KIND, either express or implied. See the License for the specific language governing
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  12)  * permissions and limitations under the License.
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  13)  */
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  14) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  15) package com.android.systemui.statusbar.phone;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  16) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  17) import static android.app.StatusBarManager.DISABLE_CLOCK;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  18) import static android.app.StatusBarManager.DISABLE_NOTIFICATION_ICONS;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  19) import static android.app.StatusBarManager.DISABLE_SYSTEM_INFO;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  20) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  21) import android.annotation.Nullable;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  22) import android.app.Fragment;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  23) import android.os.Bundle;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  24) import android.os.Parcelable;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  25) import android.util.SparseArray;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  26) import android.view.LayoutInflater;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  27) import android.view.View;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  28) import android.view.ViewGroup;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  29) import android.view.ViewStub;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  30) import android.widget.LinearLayout;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  31) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  32) import com.android.systemui.Dependency;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  33) import com.android.systemui.Interpolators;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  34) import com.android.systemui.R;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  35) import com.android.systemui.SysUiServiceProvider;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  36) import com.android.systemui.plugins.statusbar.StatusBarStateController;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  37) import com.android.systemui.statusbar.CommandQueue;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  38) import com.android.systemui.statusbar.phone.StatusBarIconController.DarkIconManager;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  39) import com.android.systemui.statusbar.policy.EncryptionHelper;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  40) import com.android.systemui.statusbar.policy.KeyguardMonitor;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  41) import com.android.systemui.statusbar.policy.NetworkController;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  42) import com.android.systemui.statusbar.policy.NetworkController.SignalCallback;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  43) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  44) //CAPP_SYSTEMUI_PORTING
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900  45) import android.content.ComponentName;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  46) import android.content.Context;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  47) import android.content.res.Configuration;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  48) import android.database.ContentObserver;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  49) import android.os.Handler;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  50) import android.os.RemoteException;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  51) import android.os.UserHandle;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  52) import android.provider.Settings;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  53) import android.util.DisplayMetrics;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  54) import android.view.IWindowManager;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  55) import android.view.WindowManagerGlobal;
+10f146a9 (uno.jeong     2019-05-30 17:58:49 +0900  56) import com.android.systemui.plugins.DarkIconDispatcher;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  57) import com.android.systemui.shared.system.ActivityManagerWrapper;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  58) import com.android.systemui.statusbar.SignalClusterView;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  59) import com.android.systemui.statusbar.phone.HeadsUpAppearanceController;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  60) import com.android.systemui.statusbar.phone.NotificationIconContainer;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  61) import com.android.systemui.statusbar.policy.Clock;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  62) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  63) import com.lge.constants.SettingsConstants;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  64) import com.lge.systemui.HLog;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  65) import com.lge.systemui.feature.Feature;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  66) import com.lge.systemui.widget.NotificationBackground;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  67) import com.lge.systemui.widget.OperatorTextView;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  68) import com.lge.systemui.statusbar.policy.IconShiftController;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  69) import com.lge.systemui.statusbar.policy.NotificationColorFlagController;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  70) import com.lge.systemui.statusbar.policy.NotificationColorFlagController.OnColorFlagChangeListener;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  71) import com.lge.systemui.Utils;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  72) import com.lge.systemui.widget.NotchClock;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  73) import com.lge.systemui.widget.OperatorTextView;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  74) import com.lge.systemui.widget.StatusBarLinearLayout;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  75) import android.view.Surface;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  76) import android.hardware.display.DisplayManager;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  77) //CAPP_SYSTEMUI_PORTING_END
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900  78) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  79) /**
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  80)  * Contains the collapsed status bar and handles hiding/showing based on disable flags
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  81)  * and keyguard state. Also manages lifecycle to make sure the views it contains are being
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  82)  * updated by the StatusBarIconController and DarkIconManager while it is attached.
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  83)  */
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  84) public class CollapsedStatusBarFragment extends Fragment implements CommandQueue.Callbacks,
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  85)         StatusBarStateController.StateListener {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  86) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  87)     public static final String TAG = "CollapsedStatusBarFragment";
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  88)     private static final String EXTRA_PANEL_STATE = "panel_state";
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  89)     public static final String STATUS_BAR_ICON_MANAGER_TAG = "status_bar_icon_manager";
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  90)     public static final int FADE_IN_DURATION = 320;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  91)     public static final int FADE_IN_DELAY = 50;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  92)     private PhoneStatusBarView mStatusBar;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  93)     private StatusBarStateController mStatusBarStateController;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  94)     private KeyguardMonitor mKeyguardMonitor;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  95)     private NetworkController mNetworkController;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  96)     private LinearLayout mSystemIconArea;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  97)     private View mClockView;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900  98)     private View mNotificationIconAreaInner;
+1c0f6260 (uno.jeong     2019-07-10 15:44:41 +0900  99)     private View mCenteredIconArea;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 100)     private int mDisabled1;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 101)     private StatusBar mStatusBarComponent;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 102)     private DarkIconManager mDarkIconManager;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 103)     private View mOperatorNameFrame;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 104)     private CommandQueue mCommandQueue;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 105) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 106)     //CAPP_SYSTEMUI_PORTING
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 107)     private static final boolean DEBUG = false;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 108)     public static final String NOTIFICATION_STATUS_BAR_ICON = "notification_status_bar_icon";
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 109)     private static final int HIDE_NOTI = 0;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 110)     private static final int SHOW_NOTI = 1;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 111) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 112)     private Context mStableDensityContext;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 113) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 114)     private NotchClock mNotchClock;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 115)     private DisplayManager mDisplayManager;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 116) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 117)     private SignalClusterView mSignalClusterView;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 118)     private OperatorTextView mOperatorTextView;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 119)     private NotificationBackground mNotificationBackground;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 120)     private StatusBarLinearLayout mStatusBarContents;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 121)     private LinearLayout mStatusIcons;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 122)     private boolean mIsHeadsup;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 123) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 124)     private final OnColorFlagChangeListener mColorFlagListener = (colorFlags) -> {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 125)         if (mNotificationBackground != null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 126)             mNotificationBackground.updateBackground(colorFlags);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 127)             if (Feature.supports(Feature.NOTCH_DISPLAY)) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 128)                 mStatusBarComponent.updateNotchNotiBgMask();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 129)             }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 130)             adjustColorBackgroundVisibility(true /* animate */);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 131)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 132)     };
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 133) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 134)     private final DisplayManager.DisplayListener mDisplayListener = new DisplayManager.DisplayListener() {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 135)         @Override
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 136)         public void onDisplayAdded(int displayId) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 137)             // do nothing
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 138)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 139) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 140)         @Override
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 141)         public void onDisplayRemoved(int displayId) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 142)             // do nothing
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 143)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 144) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 145)         @Override
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 146)         public void onDisplayChanged(int displayId) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 147)             if (getContext() != null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 148)                 int rotation = getContext().getDisplay().getRotation();
+628072a5 (camwi.kim     2019-10-04 22:08:09 +0900 149)                 //TODO : sending this event only 90->270, 270->90
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 150)                 if (rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 151)                     Configuration configuration = getContext().getResources().getConfiguration();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 152)                     onConfigurationChanged(configuration);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 153)                 }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 154)             }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 155)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 156)     };
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 157) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 158)     private IconShiftController mIconShiftController;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 159) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 160)     private final IconShiftController.Callback mIconShiftCallback = new IconShiftController.Callback() {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 161)         @Override
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 162)         public void shiftIcons(int left, int top, int right, int bottom) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 163)             final View contents = mStatusBarContents;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 164)             if (contents != null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 165)                 contents.setTranslationX(left);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 166)                 contents.setTranslationY(top);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 167)             }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 168)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 169)     };
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 170)     //CAPP_SYSTEMUI_PORTING_END
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 171) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 172)     private SignalCallback mSignalCallback = new SignalCallback() {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 173)         @Override
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 174)         public void setIsAirplaneMode(NetworkController.IconState icon) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 175)             mCommandQueue.recomputeDisableFlags(getContext().getDisplayId(), true /* animate */);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 176)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 177)     };
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 178) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 179)     @Override
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 180)     public void onCreate(@Nullable Bundle savedInstanceState) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 181)         super.onCreate(savedInstanceState);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 182)         mKeyguardMonitor = Dependency.get(KeyguardMonitor.class);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 183)         mNetworkController = Dependency.get(NetworkController.class);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 184)         mStatusBarStateController = Dependency.get(StatusBarStateController.class);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 185)         mStatusBarComponent = SysUiServiceProvider.getComponent(getContext(), StatusBar.class);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 186)         mCommandQueue = SysUiServiceProvider.getComponent(getContext(), CommandQueue.class);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 187) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 188)         //CAPP_SYSTEMUI_PORTING
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 189)         if (Feature.supports(Feature.LCD_OLED) || Feature.supports(Feature.LCD_MPLUS)) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 190)             mIconShiftController = Dependency.get(IconShiftController.class);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 191)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 192) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 193)         if(Feature.supports(Feature.HOLE_IN_ONE_NOTCH_DISPLAY)) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 194)             mDisplayManager = (DisplayManager) getContext().getSystemService(
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 195)                     Context.DISPLAY_SERVICE);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 196)             mDisplayManager.registerDisplayListener(mDisplayListener, null);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 197)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 198)         //CAPP_SYSTEMUI_PORTING_END
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 199)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 200) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 201)     @Override
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 202)     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 203)             Bundle savedInstanceState) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 204)         //CAPP_SYSTEMUI_NOTCH
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 205)         if (Feature.supports(Feature.NOTCH_DISPLAY)) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 206)             mStableDensityContext = getFixedDensityContext(getContext());
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 207)             inflater = inflater.cloneInContext(mStableDensityContext);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 208)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 209)         //CAPP_SYSTEMUI_NOTCH_END
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 210)         return inflater.inflate(R.layout.status_bar, container, false);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 211)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 212) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 213)     @Override
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 214)     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 215)         super.onViewCreated(view, savedInstanceState);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 216)         mStatusBar = (PhoneStatusBarView) view;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 217)         if (savedInstanceState != null && savedInstanceState.containsKey(EXTRA_PANEL_STATE)) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 218)             mStatusBar.restoreHierarchyState(
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 219)                     savedInstanceState.getSparseParcelableArray(EXTRA_PANEL_STATE));
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 220)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 221)         mDarkIconManager = new DarkIconManager(view.findViewById(R.id.statusIcons));
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 222)         mDarkIconManager.setShouldLog(true);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 223)         Dependency.get(StatusBarIconController.class).addIconGroup(mDarkIconManager);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 224)         mSystemIconArea = mStatusBar.findViewById(R.id.system_icon_area);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 225)         mClockView = mStatusBar.findViewById(R.id.clock);
+628072a5 (camwi.kim     2019-10-04 22:08:09 +0900 226) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 227)         //CAPP_SYSTEMUI_PORTING
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 228)         mStatusIcons = mStatusBar.findViewById(R.id.statusIcons);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 229)         mSignalClusterView = mStatusBar.findViewById(R.id.signal_cluster);
+240f3e9d (uno.jeong     2019-05-31 18:23:43 +0900 230)         mSignalClusterView.setTag(StatusBar.TAG_STATUSBAR);
+240f3e9d (uno.jeong     2019-05-31 18:23:43 +0900 231)         Dependency.get(DarkIconDispatcher.class).addDarkReceiver(mSignalClusterView);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 232)         //CAPP_SYSTEMUI_PORTING_END
+628072a5 (camwi.kim     2019-10-04 22:08:09 +0900 233) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 234)         showSystemIconArea(false);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 235)         showClock(false);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 236)         initEmergencyCryptkeeperText();
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 237)         initOperatorName();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 238) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 239)         //CAPP_SYSTEMUI_PORTING
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 240)         mOperatorTextView = mStatusBar.findViewById(R.id.operator_text);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 241)         if (mOperatorTextView != null) {
+240f3e9d (uno.jeong     2019-05-31 18:23:43 +0900 242)             Dependency.get(DarkIconDispatcher.class).addDarkReceiver(mOperatorTextView);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 243)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 244) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 245)         mNotificationBackground = mStatusBar.findViewById(R.id.notification_background);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 246)         mStatusBarContents = mStatusBar.findViewById(R.id.status_bar_contents);
+10f146a9 (uno.jeong     2019-05-30 17:58:49 +0900 247)         mStatusBarContents.setIconController(Dependency.get(DarkIconDispatcher.class));
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 248) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 249)         if (com.lge.os.Build.LGUI_VERSION.RELEASE >= com.lge.os.Build.LGUI_VERSION_NAMES.V8_0) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 250)             if(Utils.isRTLNotHebrew()){
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 251)                 mStatusBarContents.setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 252)             }else{
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 253)                 mStatusBarContents.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 254)             }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 255)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 256) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 257)         Dependency.get(NotificationColorFlagController.class).addCallback(mColorFlagListener);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 258) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 259)         if (mIconShiftController != null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 260)             mIconShiftController.addCallback(mIconShiftCallback);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 261)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 262) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 263)         if (Feature.supports(Feature.NOTCH_DISPLAY)) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 264)             initNotchClock();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 265)             registerObserver();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 266) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 267)             if (Utils.isPortraitMode(getContext().getApplicationContext())) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 268)                 if (!(Feature.supports(Feature.NARROW_NOTCH_DISPLAY) || Feature.supports(Feature.HOLE_IN_ONE_NOTCH_DISPLAY))) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 269)                     animateHide(mStatusIcons, false);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 270)                 }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 271)             }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 272)             if (mOperatorTextView != null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 273)                 mOperatorTextView.setVisibility(View.GONE);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 274)             }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 275)             mClockView.setVisibility(View.GONE);
+240f3e9d (uno.jeong     2019-05-31 18:23:43 +0900 276)             Dependency.get(DarkIconDispatcher.class).addDarkReceiver(mNotchClock);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 277)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 278)         //CAPP_SYSTEMUI_PORTING_END
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 279)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 280) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 281)     @Override
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 282)     public void onSaveInstanceState(Bundle outState) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 283)         super.onSaveInstanceState(outState);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 284)         SparseArray<Parcelable> states = new SparseArray<>();
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 285)         mStatusBar.saveHierarchyState(states);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 286)         outState.putSparseParcelableArray(EXTRA_PANEL_STATE, states);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 287)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 288) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 289)     @Override
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 290)     public void onResume() {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 291)         super.onResume();
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 292)         mCommandQueue.addCallback(this);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 293)         mStatusBarStateController.addCallback(this);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 294)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 295) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 296)     @Override
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 297)     public void onPause() {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 298)         super.onPause();
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 299)         mCommandQueue.removeCallback(this);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 300)         mStatusBarStateController.removeCallback(this);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 301)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 302) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 303)     @Override
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 304)     public void onDestroyView() {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 305)         super.onDestroyView();
+240f3e9d (uno.jeong     2019-05-31 18:23:43 +0900 306)         Dependency.get(DarkIconDispatcher.class).removeDarkReceiver(mSignalClusterView); //CAPP_SYSTEMUI_PORTING
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 307)         Dependency.get(StatusBarIconController.class).removeIconGroup(mDarkIconManager);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 308)         if (mNetworkController.hasEmergencyCryptKeeperText()) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 309)             mNetworkController.removeCallback(mSignalCallback);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 310)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 311) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 312)         //CAPP_SYSTEMUI_PORTING
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 313)         if (mOperatorTextView != null) {
+240f3e9d (uno.jeong     2019-05-31 18:23:43 +0900 314)             Dependency.get(DarkIconDispatcher.class).removeDarkReceiver(mOperatorTextView);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 315)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 316)         Dependency.get(NotificationColorFlagController.class).removeCallback(mColorFlagListener);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 317)         if (mIconShiftController != null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 318)             mIconShiftController.removeCallback(mIconShiftCallback);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 319)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 320) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 321)         if (Feature.supports(Feature.NOTCH_DISPLAY)) {
+240f3e9d (uno.jeong     2019-05-31 18:23:43 +0900 322)             Dependency.get(DarkIconDispatcher.class).removeDarkReceiver(mNotchClock);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 323)             unregisterObserver();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 324)         }
+a663befa (chang.park    2020-02-22 10:19:52 +0900 325)         ((ViewGroup)mStatusBar.findViewById(R.id.system_icons)).removeView(mSignalClusterView);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 326)         //CAPP_SYSTEMUI_PORTING_END
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 327)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 328) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 329)     public void initNotificationIconArea(NotificationIconAreaController
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 330)             notificationIconAreaController) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 331)         ViewGroup notificationIconArea = mStatusBar.findViewById(R.id.notification_icon_area);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 332)         mNotificationIconAreaInner =
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 333)                 notificationIconAreaController.getNotificationInnerAreaView();
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 334)         if (mNotificationIconAreaInner.getParent() != null) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 335)             ((ViewGroup) mNotificationIconAreaInner.getParent())
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 336)                     .removeView(mNotificationIconAreaInner);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 337)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 338)         notificationIconArea.addView(mNotificationIconAreaInner);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 339) 
+1c0f6260 (uno.jeong     2019-07-10 15:44:41 +0900 340)         ViewGroup statusBarCenteredIconArea = mStatusBar.findViewById(R.id.centered_icon_area);
+1c0f6260 (uno.jeong     2019-07-10 15:44:41 +0900 341)         mCenteredIconArea = notificationIconAreaController.getCenteredNotificationAreaView();
+1c0f6260 (uno.jeong     2019-07-10 15:44:41 +0900 342)         if (mCenteredIconArea.getParent() != null) {
+1c0f6260 (uno.jeong     2019-07-10 15:44:41 +0900 343)             ((ViewGroup) mCenteredIconArea.getParent())
+1c0f6260 (uno.jeong     2019-07-10 15:44:41 +0900 344)                     .removeView(mCenteredIconArea);
+1c0f6260 (uno.jeong     2019-07-10 15:44:41 +0900 345)         }
+1c0f6260 (uno.jeong     2019-07-10 15:44:41 +0900 346)         statusBarCenteredIconArea.addView(mCenteredIconArea);
+1c0f6260 (uno.jeong     2019-07-10 15:44:41 +0900 347) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 348)         //CAPP_SYSTEMUI_PORTING
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 349)         if (!(Feature.supports(Feature.NOTCH_DISPLAY) || Feature.supports(Feature.HOLE_IN_ONE_NOTCH_DISPLAY))) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 350)             // Default to showing until we know otherwise.
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 351)             showNotificationIconArea(false);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 352)         } else {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 353)             if (isCleanNotiIcon()) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 354)                 hideNotificationIconArea(false);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 355)             } else {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 356)                 showNotificationIconArea(false);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 357)             }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 358)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 359) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 360)         NotificationIconContainer notificationIconContainer =
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 361)                 notificationIconAreaController.getNotificationIconContainer();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 362)         mStatusBarContents.setNotificationIconContainer(notificationIconContainer);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 363) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 364)         notificationIconContainer.setTag(StatusBar.TAG_STATUSBAR);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 365)         //CAPP_SYSTEMUI_PORTING_END
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 366)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 367) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 368)     @Override
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 369)     public void disable(int displayId, int state1, int state2, boolean animate) {
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 370)         //CAPP_SYSTEMUI_PORTING
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 371)         if (DEBUG) {
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 372)             HLog.d(TAG, "disable() S state1 = " + Integer.toHexString(state1) + ", mDisabled1 = " + Integer.toHexString(mDisabled1));
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 373)         }
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 374)         //CAPP_SYSTEMUI_PORTING_END
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 375) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 376)         if (displayId != getContext().getDisplayId()) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 377)             return;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 378)         }
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 379) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 380)         state1 = adjustDisableFlags(state1);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 381)         final int old1 = mDisabled1;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 382)         final int diff1 = state1 ^ old1;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 383)         mDisabled1 = state1;
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 384) 
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 385)         //CAPP_SYSTEMUI_PORTING
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 386)         if (DEBUG) {
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 387)             HLog.d(TAG, "disable() E state1 = " + Integer.toHexString(state1) + ", mDisabled1 = " + Integer.toHexString(mDisabled1));
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 388)             HLog.d(TAG, "disable() : diff1 = " +  Integer.toHexString(diff1));
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 389)         }
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 390)         //CAPP_SYSTEMUI_PORTING_END
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 391) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 392)         if ((diff1 & DISABLE_SYSTEM_INFO) != 0) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 393)             if ((state1 & DISABLE_SYSTEM_INFO) != 0) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 394)                 hideSystemIconArea(animate);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 395)                 hideOperatorName(animate);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 396)             } else {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 397)                 showSystemIconArea(animate);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 398)                 showOperatorName(animate);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 399)             }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 400)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 401)         if ((diff1 & DISABLE_NOTIFICATION_ICONS) != 0) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 402)             if ((state1 & DISABLE_NOTIFICATION_ICONS) != 0) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 403)                 hideNotificationIconArea(animate);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 404)             } else {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 405)                 showNotificationIconArea(animate);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 406)             }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 407)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 408)         // The clock may have already been hidden, but we might want to shift its
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 409)         // visibility to GONE from INVISIBLE or vice versa
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 410)         //CAPP_SYSTEMUI_PORTING
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 411)         View clockView = mClockView;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 412)         if (Feature.supports(Feature.NOTCH_DISPLAY)) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 413)             clockView = mNotchClock;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 414)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 415)         //CAPP_SYSTEMUI_PORTING_END
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 416) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 417)         if ((diff1 & DISABLE_CLOCK) != 0 || mClockView.getVisibility() != clockHiddenMode()) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 418)             if ((state1 & DISABLE_CLOCK) != 0) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 419)                 hideClock(animate);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 420)             } else {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 421)                 //CAPP_SYSTEMUI_PORTING
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 422)                 if (Feature.supports(Feature.NOTCH_DISPLAY)) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 423)                     if (!mIsHeadsup) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 424)                         showClock(animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 425)                     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 426)                 } else {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 427)                     showClock(animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 428)                 }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 429)                 //CAPP_SYSTEMUI_PORTING_END
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 430)             }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 431)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 432)         adjustColorBackgroundVisibility(animate); //CAPP_SYSTEMUI_PORTING
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 433)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 434) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 435)     public int adjustDisableFlags(int state) { //CAPP_SYSTEMUI_PORTING
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 436)         //CAPP_SYSTEMUI_PORTING
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 437)         if (DEBUG) {
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 438)             HLog.i(TAG, "adjustDisableFlags() in : state = 0x" + Integer.toHexString(state));
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 439)         }
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 440) 
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 441)         if (mStatusBarComponent.isExpandedInvisibleOnce()){
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 442)             return state;
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 443)         }
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 444) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 445)         setHeadsUpVisbleState();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 446) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 447)         if (mIsHeadsup) {
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900 448)             ComponentName topActivityName = Utils.getTopActivity(getContext());
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900 449)             if(topActivityName != null) {
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900 450)                 String topActivity = topActivityName.getClassName();
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900 451)                 if (topActivity != null && topActivity.equals("com.lge.camera.SecureCameraApp")) {
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900 452)                     state |= DISABLE_CLOCK;
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900 453)                 }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 454)             }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 455)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 456)         //CAPP_SYSTEMUI_PORTING_END
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 457) 
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 458)         HLog.d(TAG, "adjustDisableFlags() : "
+acddbb49 (byoungjin.kim 2019-10-31 15:36:22 +0900 459)             + "isLaunchTransitionFadingAway = " + mKeyguardMonitor.isLaunchTransitionFadingAway()
+acddbb49 (byoungjin.kim 2019-10-31 15:36:22 +0900 460)             + ", isKeyguardFadingAway = " + mKeyguardMonitor.isKeyguardFadingAway()
+acddbb49 (byoungjin.kim 2019-10-31 15:36:22 +0900 461)             + ", shouldHideNotificationIcons = " + shouldHideNotificationIcons()
+acddbb49 (byoungjin.kim 2019-10-31 15:36:22 +0900 462)             + ", isKeyguardShowing = " + mStatusBarComponent.isKeyguardShowing()
+acddbb49 (byoungjin.kim 2019-10-31 15:36:22 +0900 463)             + ", isKeyguardOccluded = " + mStatusBarComponent.isKeyguardOccluded()
+acddbb49 (byoungjin.kim 2019-10-31 15:36:22 +0900 464)             + ", isBouncerShowing = " + mStatusBarComponent.isBouncerShowing()
+acddbb49 (byoungjin.kim 2019-10-31 15:36:22 +0900 465)         );
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 466)         if (!mKeyguardMonitor.isLaunchTransitionFadingAway()
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 467)                 && !mKeyguardMonitor.isKeyguardFadingAway()
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 468)                 && (shouldHideNotificationIcons()
+628072a5 (camwi.kim     2019-10-04 22:08:09 +0900 469)                         //CAPP_SYSTEMUI_PORTING
+628072a5 (camwi.kim     2019-10-04 22:08:09 +0900 470)                         || (mStatusBarComponent.isKeyguardShowing() && !mStatusBarComponent.isKeyguardOccluded())
+628072a5 (camwi.kim     2019-10-04 22:08:09 +0900 471)                         || mStatusBarComponent.isBouncerShowing())
+628072a5 (camwi.kim     2019-10-04 22:08:09 +0900 472)                         //CAPP_SYSTEMUI_PORTING_END
+628072a5 (camwi.kim     2019-10-04 22:08:09 +0900 473)                    ) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 474)             state |= DISABLE_NOTIFICATION_ICONS;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 475)             state |= DISABLE_SYSTEM_INFO;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 476)             state |= DISABLE_CLOCK;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 477)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 478) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 479)         // In landscape, the heads up show but shouldHideNotificationIcons() return false
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 480)         // because the visual icon is in notification icon area rather than heads up's space.
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 481)         // whether the notification icon show or not, clock should hide when heads up show.
+292fc25e (byoungjin.kim 2020-02-28 11:34:04 +0900 482)         if (mStatusBarComponent.isHeadsUpShouldBeVisible() && Feature.supports(Feature.NOTCH_DISPLAY)) {        //CAPP_SYSTEMUI_PORTING
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 483)             state |= DISABLE_CLOCK;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 484)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 485) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 486)         if (mNetworkController != null && EncryptionHelper.IS_DATA_ENCRYPTED) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 487)             if (mNetworkController.hasEmergencyCryptKeeperText()) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 488)                 state |= DISABLE_NOTIFICATION_ICONS;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 489)                 state |= DISABLE_CLOCK; //CAPP_SYSTEMUI_PORTING
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 490)             }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 491)             if (!mNetworkController.isRadioOn()) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 492)                 state |= DISABLE_SYSTEM_INFO;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 493)                 state |= DISABLE_CLOCK; //CAPP_SYSTEMUI_PORTING
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 494)             }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 495)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 496) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 497)         // The shelf will be hidden when dozing with a custom clock, we must show notification
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 498)         // icons in this occasion.
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 499)         if (mStatusBarStateController.isDozing()
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 500)                 && mStatusBarComponent.getPanel().hasCustomClock()) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 501)             state |= DISABLE_CLOCK | DISABLE_SYSTEM_INFO;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 502)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 503) 
+81322677 (byoungjin.kim 2019-11-12 21:51:44 +0900 504)         // STATUS_BAR_DISABLE_NOTIFICATION_ICONS = 0x0002 0000
+81322677 (byoungjin.kim 2019-11-12 21:51:44 +0900 505)         // STATUS_BAR_DISABLE_SYSTEM_INFO        = 0x0010 0000
+81322677 (byoungjin.kim 2019-11-12 21:51:44 +0900 506)         // STATUS_BAR_DISABLE_CLOCK              = 0x0080 0000
+81322677 (byoungjin.kim 2019-11-12 21:51:44 +0900 507)         // STATUS_BAR_DISABLE_HOME               = 0x0020 0000
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 508) 
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 509)         //CAPP_SYSTEMUI_PORTING
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 510)         if (DEBUG) {
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 511)             HLog.i(TAG, "adjustDisableFlags() out : state = 0x" + Integer.toHexString(state));
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 512)         }
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 513)         //CAPP_SYSTEMUI_PORTING_END
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 514) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 515)         return state;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 516)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 517) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 518)     private boolean shouldHideNotificationIcons() {
+acddbb49 (byoungjin.kim 2019-10-31 15:36:22 +0900 519)         HLog.i(TAG, "shouldHideNotificationIcons() : closed =  " + mStatusBar.isClosed() + ", showNotiEx = " + mStatusBarComponent.hideStatusBarIconsWhenExpanded() + ", hideInBouncer = " + mStatusBarComponent.hideStatusBarIconsForBouncer());
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 520)         if (!mStatusBar.isClosed() && mStatusBarComponent.hideStatusBarIconsWhenExpanded()) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 521)             return true;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 522)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 523)         if (mStatusBarComponent.hideStatusBarIconsForBouncer()) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 524)             return true;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 525)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 526)         return false;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 527)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 528) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 529)     public void hideSystemIconArea(boolean animate) {
+acddbb49 (byoungjin.kim 2019-10-31 15:36:22 +0900 530)         HLog.i(TAG, "hideSystemIconArea() : animate = " + animate);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 531)         animateHide(mSystemIconArea, animate);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 532)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 533) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 534)     public void showSystemIconArea(boolean animate) {
+acddbb49 (byoungjin.kim 2019-10-31 15:36:22 +0900 535)         HLog.i(TAG, "showSystemIconArea() : animate = " + animate);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 536)         animateShow(mSystemIconArea, animate);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 537)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 538) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 539)     public void hideClock(boolean animate) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 540)         //CAPP_SYSTEMUI_PORTING
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 541)         if (Feature.supports(Feature.NOTCH_DISPLAY)) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 542)             animateHiddenState(mNotchClock, clockHiddenMode(), animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 543)         } else {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 544)             animateHiddenState(mClockView, clockHiddenMode(), animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 545)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 546)         //CAPP_SYSTEMUI_PORTING_END
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 547)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 548) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 549)     public void showClock(boolean animate) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 550)         //CAPP_SYSTEMUI_PORTING
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 551)         if (Feature.supports(Feature.NOTCH_DISPLAY)) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 552)             animateShow(mNotchClock, animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 553)         } else {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 554)             animateShow(mClockView, animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 555)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 556)         //CAPP_SYSTEMUI_PORTING_END
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 557)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 558) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 559)     /**
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 560)      * If panel is expanded/expanding it usually means QS shade is opening, so
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 561)      * don't set the clock GONE otherwise it'll mess up the animation.
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 562)      */
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 563)     private int clockHiddenMode() {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 564)         if (!mStatusBar.isClosed() && !mKeyguardMonitor.isShowing()
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 565)                 && !mStatusBarStateController.isDozing()) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 566)             return View.INVISIBLE;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 567)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 568)         return View.GONE;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 569)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 570) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 571)     public void hideNotificationIconArea(boolean animate) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 572)         //CAPP_SYSTEMUI_PORTING
+acddbb49 (byoungjin.kim 2019-10-31 15:36:22 +0900 573)         HLog.i(TAG, "hideNotificationIconArea() : animate = " + animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 574)         if (Feature.supports(Feature.NOTCH_DISPLAY)) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 575)             if (isCleanNotiIcon()) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 576)                 animateHide(mNotificationIconAreaInner, animate);
+1c0f6260 (uno.jeong     2019-07-10 15:44:41 +0900 577)                 animateHide(mCenteredIconArea, animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 578)                 if ((mDisabled1 & DISABLE_NOTIFICATION_ICONS) != 0) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 579)                     if (mOperatorTextView != null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 580)                         mOperatorTextView.animateHide(animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 581)                     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 582)                     if (mNotchClock != null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 583)                         animateHide(mNotchClock, animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 584)                     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 585)                 }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 586)             } else {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 587)                 animateHide(mNotificationIconAreaInner, animate);
+1c0f6260 (uno.jeong     2019-07-10 15:44:41 +0900 588)                 animateHide(mCenteredIconArea, animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 589)                 if (mOperatorTextView != null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 590)                     mOperatorTextView.animateHide(animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 591)                 }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 592)                 if (mNotchClock != null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 593)                     animateHide(mNotchClock, animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 594)                 }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 595)             }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 596)         } else {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 597)             animateHide(mNotificationIconAreaInner, animate);
+1c0f6260 (uno.jeong     2019-07-10 15:44:41 +0900 598)             animateHide(mCenteredIconArea, animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 599) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 600)             if (mOperatorTextView != null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 601)                 mOperatorTextView.animateHide(animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 602)             }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 603)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 604)         //CAPP_SYSTEMUI_PORTING_END
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 605)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 606) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 607)     public void showNotificationIconArea(boolean animate) {
+628072a5 (camwi.kim     2019-10-04 22:08:09 +0900 608)         //CAPP_SYSTEMUI_PORTING
+acddbb49 (byoungjin.kim 2019-10-31 15:36:22 +0900 609)         HLog.i(TAG, "showNotificationIconArea() : animate = " + animate);
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900 610)         setHeadsUpVisbleState();
+628072a5 (camwi.kim     2019-10-04 22:08:09 +0900 611) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 612)         if (Feature.supports(Feature.NOTCH_DISPLAY)) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 613)             if (isCleanNotiIcon()) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 614)                 if ((mDisabled1 & DISABLE_NOTIFICATION_ICONS) == 0) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 615)                     if (mOperatorTextView != null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 616)                         mOperatorTextView.animateShow(animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 617)                     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 618)                     if (mNotchClock != null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 619)                         if ((mDisabled1 & DISABLE_CLOCK) == 0) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 620)                             animateShow(mNotchClock, animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 621)                         } else {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 622)                             mNotchClock.setAlpha(1f);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 623)                             mNotchClock.setVisibility(View.GONE);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 624)                         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 625)                     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 626)                 }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 627)                 return;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 628)             } else {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 629)                 if (mNotchClock != null) {
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900 630)                     if (!mIsHeadsup && (mDisabled1 & DISABLE_CLOCK) == 0) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 631)                         animateShow(mNotchClock, animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 632)                     } else {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 633)                         mNotchClock.setAlpha(1f);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 634)                         mNotchClock.setVisibility(View.GONE);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 635)                     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 636)                 }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 637)             }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 638)         }
+628072a5 (camwi.kim     2019-10-04 22:08:09 +0900 639) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 640)         animateShow(mNotificationIconAreaInner, animate);
+1c0f6260 (uno.jeong     2019-07-10 15:44:41 +0900 641)         animateShow(mCenteredIconArea, animate);
+628072a5 (camwi.kim     2019-10-04 22:08:09 +0900 642) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 643)         if (mOperatorTextView != null && !mIsHeadsup) {
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900 644)             HLog.d(TAG, "showNotificationIconArea() : showing operatorText");
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 645)             mOperatorTextView.animateShow(animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 646)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 647)         //CAPP_SYSTEMUI_PORTING_END
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 648)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 649) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 650)     public void hideOperatorName(boolean animate) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 651)         if (mOperatorNameFrame != null) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 652)             animateHide(mOperatorNameFrame, animate);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 653)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 654)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 655) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 656)     public void showOperatorName(boolean animate) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 657)         if (mOperatorNameFrame != null) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 658)             animateShow(mOperatorNameFrame, animate);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 659)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 660)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 661) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 662)     /**
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 663)      * Animate a view to INVISIBLE or GONE
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 664)      */
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 665)     private void animateHiddenState(final View v, int state, boolean animate) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 666)         v.animate().cancel();
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 667)         if (!animate) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 668)             v.setAlpha(0f);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 669)             v.setVisibility(state);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 670)             return;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 671)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 672) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 673)         v.animate()
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 674)                 .alpha(0f)
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 675)                 .setDuration(160)
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 676)                 .setStartDelay(0)
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 677)                 .setInterpolator(Interpolators.ALPHA_OUT)
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 678)                 .withEndAction(() -> v.setVisibility(state));
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 679)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 680) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 681)     /**
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 682)      * Hides a view.
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 683)      */
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 684)     private void animateHide(final View v, boolean animate) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 685)         //CAPP_SYSTEMUI_PORTING
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 686)         if (v == null) {
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 687)             HLog.e(TAG, "animateHide() : view is null!!");
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 688)             return;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 689)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 690)         //CAPP_SYSTEMUI_PORTING_END
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 691)         animateHiddenState(v, View.INVISIBLE, animate);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 692)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 693) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 694)     /**
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 695)      * Shows a view, and synchronizes the animation with Keyguard exit animations, if applicable.
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 696)      */
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 697)     private void animateShow(View v, boolean animate) {
+0e98b105 (uno.jeong     2019-05-22 17:35:40 +0900 698)         //CAPP_SYSTEMUI_PORTING
+0e98b105 (uno.jeong     2019-05-22 17:35:40 +0900 699)         if (v == null) {
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 700)             HLog.e(TAG, "animateShow() : view is null!!");
+0e98b105 (uno.jeong     2019-05-22 17:35:40 +0900 701)             return;
+0e98b105 (uno.jeong     2019-05-22 17:35:40 +0900 702)         }
+0e98b105 (uno.jeong     2019-05-22 17:35:40 +0900 703)         //CAPP_SYSTEMUI_PORTING_END
+0e98b105 (uno.jeong     2019-05-22 17:35:40 +0900 704) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 705)         v.animate().cancel();
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 706)         v.setVisibility(View.VISIBLE);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 707)         if (!animate) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 708)             v.setAlpha(1f);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 709)             return;
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 710)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 711)         v.animate()
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 712)                 .alpha(1f)
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 713)                 .setDuration(FADE_IN_DURATION)
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 714)                 .setInterpolator(Interpolators.ALPHA_IN)
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 715)                 .setStartDelay(FADE_IN_DELAY)
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 716) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 717)                 // We need to clean up any pending end action from animateHide if we call
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 718)                 // both hide and show in the same frame before the animation actually gets started.
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 719)                 // cancel() doesn't really remove the end action.
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 720)                 .withEndAction(null);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 721) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 722)         // Synchronize the motion with the Keyguard fading if necessary.
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 723)         if (mKeyguardMonitor.isKeyguardFadingAway()) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 724)             v.animate()
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 725)                     .setDuration(mKeyguardMonitor.getKeyguardFadingAwayDuration())
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 726)                     .setInterpolator(Interpolators.LINEAR_OUT_SLOW_IN)
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 727)                     .setStartDelay(mKeyguardMonitor.getKeyguardFadingAwayDelay())
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 728)                     .start();
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 729)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 730)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 731) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 732)     private void initEmergencyCryptkeeperText() {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 733)         View emergencyViewStub = mStatusBar.findViewById(R.id.emergency_cryptkeeper_text);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 734)         if (mNetworkController.hasEmergencyCryptKeeperText()) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 735)             if (emergencyViewStub != null) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 736)                 ((ViewStub) emergencyViewStub).inflate();
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 737)             }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 738)             mNetworkController.addCallback(mSignalCallback);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 739)         } else if (emergencyViewStub != null) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 740)             ViewGroup parent = (ViewGroup) emergencyViewStub.getParent();
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 741)             parent.removeView(emergencyViewStub);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 742)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 743)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 744) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 745)     private void initOperatorName() {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 746)         if (getResources().getBoolean(R.bool.config_showOperatorNameInStatusBar)) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 747)             ViewStub stub = mStatusBar.findViewById(R.id.operator_name);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 748)             mOperatorNameFrame = stub.inflate();
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 749)         }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 750)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 751) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 752)     @Override
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 753)     public void onStateChanged(int newState) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 754) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 755)     }
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 756) 
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 757)     @Override
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 758)     public void onDozingChanged(boolean isDozing) {
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 759)         disable(getContext().getDisplayId(), mDisabled1, mDisabled1, false /* animate */);
+5814f8cf (nicolas.choi  2019-04-25 20:36:27 +0900 760)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 761) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 762)     //CAPP_SYSTEMUI_PORTING
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 763)     private void hideColorBackground(boolean animate) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 764)         mNotificationBackground.setWillBeInvisible(true);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 765)         animateHide(mNotificationBackground, animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 766)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 767) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 768)     private void showColorBackground(boolean animate) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 769)         mNotificationBackground.setWillBeInvisible(false);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 770)         animateShow(mNotificationBackground, animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 771)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 772) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 773)     private void adjustColorBackgroundVisibility(boolean animate) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 774)         final boolean shouldInvisible =
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 775)                 !mStatusBarComponent.isExpandedInvisibleOnce()
+397d29d2 (uno.jeong     2019-06-04 18:03:50 +0900 776)                         && !mKeyguardMonitor.isLaunchTransitionFadingAway()
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 777)                         && !mKeyguardMonitor.isKeyguardFadingAway()
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 778)                         && (shouldHideNotificationIcons()
+628072a5 (camwi.kim     2019-10-04 22:08:09 +0900 779)                                 || (mStatusBarComponent.isKeyguardShowing() && !mStatusBarComponent.isKeyguardOccluded())
+628072a5 (camwi.kim     2019-10-04 22:08:09 +0900 780)                                 || mStatusBarComponent.isBouncerShowing()
+628072a5 (camwi.kim     2019-10-04 22:08:09 +0900 781)                            );
+02353b8d (byoungjin.kim 2019-10-01 22:56:22 +0900 782)         //final boolean oldInvisible = mNotificationBackground != null && mNotificationBackground.getVisibility() == View.INVISIBLE;
+02353b8d (byoungjin.kim 2019-10-01 22:56:22 +0900 783)         //if (oldInvisible != shouldInvisible) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 784)             if (shouldInvisible) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 785)                 hideColorBackground(animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 786)             } else {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 787)                 showColorBackground(animate);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 788)             }
+02353b8d (byoungjin.kim 2019-10-01 22:56:22 +0900 789)         //}
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 790)         if (Feature.supports(Feature.NOTCH_DISPLAY)) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 791)             mStatusBarComponent.updateNotchNotiBgMaskVisibility();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 792)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 793)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 794) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 795)     @Override
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 796)     public void onConfigurationChanged(Configuration newConfig) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 797)         super.onConfigurationChanged(newConfig);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 798) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 799)         if (Feature.supports(Feature.NOTCH_DISPLAY)) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 800)             if(Feature.supports(Feature.HOLE_IN_ONE_NOTCH_DISPLAY)) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 801)                 mStatusBarContents.onDensityOrFontScaleChanged();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 802)             }
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 803) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 804)             updateStableDensityContext(newConfig);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 805) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 806)             if (!(Feature.supports(Feature.NARROW_NOTCH_DISPLAY) || Feature.supports(Feature.HOLE_IN_ONE_NOTCH_DISPLAY))) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 807)                 if (Utils.isPortraitMode(getContext().getApplicationContext())) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 808)                     animateHide(mStatusIcons, false);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 809)                 } else if ((mDisabled1 & DISABLE_SYSTEM_INFO) == 0) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 810)                     if (!ActivityManagerWrapper.getInstance().isLockToAppActive()) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 811)                         animateShow(mStatusIcons, false);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 812)                     }
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 813)                 //CAPP_SYSTEMUI_PORTING
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 814)                 } else {
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 815)                     HLog.d(TAG, "onConfigurationChanged() : ~ DISABLE_SYSTEM_INFO");
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 816)                     animateShow(mStatusIcons, false);
+39f4b435 (byoungjin.kim 2019-11-19 18:38:23 +0900 817)                 //CAPP_SYSTEMUI_PORTING_END
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 818)                 }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 819)             }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 820)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 821)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 822) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 823)     private final ContentObserver mCleanNotiIconObserver = new ContentObserver(new Handler()) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 824)         @Override
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 825)         public void onChange(boolean selfChange) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 826)             updateCleanNotiIcon();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 827)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 828)     };
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 829) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 830)     public void updateCleanNotiIcon() {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 831)         if (isCleanNotiIcon()) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 832)             hideNotificationIconArea(false);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 833)         } else {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 834)             mStatusBarComponent.runImmediateHideForCleanMode();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 835)             mStatusBarComponent.runImmediateHideForCleanModeForEmergency();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 836)             showNotificationIconArea(false);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 837)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 838)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 839) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 840)     public boolean isCleanNotiIcon() {
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900 841)         if(!Feature.supports(Feature.NOTCH_DISPLAY)) {
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900 842)             return false;
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900 843)         }
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900 844) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 845)         int enabled = Settings.Secure.getIntForUser(getContext().getContentResolver(),
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 846)                 NOTIFICATION_STATUS_BAR_ICON, SHOW_NOTI, UserHandle.USER_CURRENT);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 847)         return enabled == HIDE_NOTI;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 848)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 849) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 850)     private void registerObserver() {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 851)         getContext().getContentResolver().registerContentObserver(
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 852)                 Settings.Secure.getUriFor(NOTIFICATION_STATUS_BAR_ICON),
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 853)                 true,
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 854)                 mCleanNotiIconObserver,
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 855)                 UserHandle.USER_ALL);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 856)         if (mCleanNotiIconObserver != null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 857)             mCleanNotiIconObserver.onChange(true);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 858)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 859)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 860) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 861)     private void unregisterObserver() {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 862)         if (mCleanNotiIconObserver != null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 863)             getContext().getContentResolver().unregisterContentObserver(mCleanNotiIconObserver);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 864)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 865)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 866) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 867)     private void initNotchClock() {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 868)         final ViewStub notchClockStub = mStatusBar.findViewById(R.id.notch_clock_stub);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 869)         if (notchClockStub != null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 870)             notchClockStub.setOnInflateListener(getnotchClockInflateListener());
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 871)             ((ViewStub) notchClockStub).inflate();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 872)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 873)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 874) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 875)     private ViewStub.OnInflateListener getnotchClockInflateListener() {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 876)         return (viewStub, view) -> {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 877)             HLog.d(TAG, "onInflate: NotchClock");
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 878)             mNotchClock = mStatusBar.findViewById(R.id.notch_clock);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 879)             mNotchClock.setTag(StatusBar.TAG_STATUSBAR);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 880)         };
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 881)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 882) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 883)     private Context getFixedDensityContext(Context context) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 884)         final Configuration configuration = context.getResources().getConfiguration();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 885)         configuration.densityDpi = getDefaultDisplayDensity();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 886)         return context.createConfigurationContext(configuration);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 887)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 888) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 889)     private int getDefaultDisplayDensity() {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 890)         try {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 891)             final IWindowManager wm = WindowManagerGlobal.getWindowManagerService();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 892)             return wm.getDensityDeviceStable();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 893)         } catch (RemoteException exc) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 894)             return -1;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 895)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 896)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 897) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 898)     private void updateStableDensityContext(Configuration config) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 899)         Configuration newConfig = overrideStableDensity(new Configuration(config));
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 900)         mStableDensityContext.getResources().updateConfiguration(newConfig, null, null);
+3597102b (byoungjin.kim 2019-09-16 21:33:52 +0900 901) 
+3597102b (byoungjin.kim 2019-09-16 21:33:52 +0900 902)         View v = getView();
+3597102b (byoungjin.kim 2019-09-16 21:33:52 +0900 903)         if (v == null) {
+3597102b (byoungjin.kim 2019-09-16 21:33:52 +0900 904)             return;
+3597102b (byoungjin.kim 2019-09-16 21:33:52 +0900 905)         }
+3597102b (byoungjin.kim 2019-09-16 21:33:52 +0900 906) 
+3597102b (byoungjin.kim 2019-09-16 21:33:52 +0900 907)         v.dispatchConfigurationChanged(newConfig);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 908)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 909) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 910)     private Configuration overrideStableDensity(Configuration config) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 911)         config.densityDpi = getDefaultDisplayDensity();
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 912)         return config;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 913)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 914) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 915)     public NotificationBackground getNotificationBackground() {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 916)         return mNotificationBackground;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 917)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 918) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 919)     private void setHeadsUpVisbleState() {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 920)         HeadsUpAppearanceController headsUpAppearanceController = SysUiServiceProvider
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 921)                 .getComponent(getContext(), StatusBar.class)
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 922)                 .mHeadsUpAppearanceController;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 923) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 924)         if (headsUpAppearanceController == null) {
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 925)             mIsHeadsup = false;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 926) 
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 927)             return;
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 928)         }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 929) 
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900 930)         boolean show = headsUpAppearanceController.isShown();
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900 931)         mIsHeadsup = show;
+a509cb84 (seunghee81.oh 2019-09-11 12:07:30 +0900 932)         HLog.d(TAG, "setHeadsUpVisbleState = " + show);
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 933)     }
+7af4e4a4 (uno.jeong     2019-05-23 21:33:17 +0900 934)     //CAPP_SYSTEMUI_PORTING_END
+acddbb49 (byoungjin.kim 2019-10-31 15:36:22 +0900 935) }
