@@ -24,6 +24,10 @@ let g:rehash256 = 1
 colorscheme molokai
 
 set nofixeol "not add new line at the last
+set pastetoggle=<F7>
+
+" NOT USE auto highlight
+"nnoremap <F7> :if AutoHighlightToggle()<Bar>set hls<Bar>endif<CR>
 
 "color molokai
 "set background=dark
@@ -129,7 +133,7 @@ let g:mwDefaultHighlightingPalette = 'maximum'
 "autocmd CursorMoved * exe exists("HlUnderCursor")?HlUnderCursor?printf('match IncSearch /\V\<%s\>/', escape(expand('<cword>'), '/\')):'match none':""
 "nnoremap <silent> <F7> :exe "let HlUnderCursor=exists(\"HlUnderCursor\")?HlUnderCursor*-1+1:1"<CR>
 "
-nnoremap <F7> :if AutoHighlightToggle()<Bar>set hls<Bar>endif<CR>
+
 function! AutoHighlightToggle()
   let @/ = ''
     if exists('#auto_highlight')
