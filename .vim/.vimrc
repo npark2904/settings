@@ -26,6 +26,8 @@ colorscheme molokai
 set nofixeol "not add new line at the last
 set pastetoggle=<F7>
 
+set showtabline=2
+
 " NOT USE auto highlight
 "nnoremap <F7> :if AutoHighlightToggle()<Bar>set hls<Bar>endif<CR>
 
@@ -55,6 +57,8 @@ let g:PGC_Mark_Store_Path = g:PGC_Store_Path
 nmap <F9> :WorkspaceLoad <C-R>=g:PGC_Question("PGC Store Load >> ", '', "customlist,PGC_Workspace#VariablesComplete")<CR><CR>
 nmap \S :WorkspaceSave <C-R>=g:PGC_Question("PGC Store Save >> ", '', "customlist,PGC_Workspace#VariablesComplete")<CR><CR>
 
+command! -bar -nargs=? W exe('w')
+command! -bar -nargs=? Wa exe('wa')
 
 "----------------------------------------------- excute bash cmd "screen -R"
 command! -bar -nargs=? -complete=customlist, SR exe('!screen -R')
