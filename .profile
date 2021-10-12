@@ -54,12 +54,7 @@ alias cd='pushd >/dev/null'
 #PGC constants
 #export mirror='--reference=/home001/mirror/lr/'
 
-#android sdk
-export ANDROID_SDK_ROOT=/usr/lib/android-sdk
-export ANDROID_HOME=/usr/lib/android-sdk
 
-#java
-export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
 
 #PGC functions
@@ -78,6 +73,16 @@ function PGC_help() {
     echo "[Copy from other build server] : rsync -azuv -e ssh Id@Domain:/RemotePath /LocalPath"
     echo "[Create symbolic link]       : ln -s Target LinkName"
     echo "[Git push with gerrit]       : git push {remote} HEAD:refs/{for}/{Branch}"
+}
+
+function gotoMainBranch {
+    echo "------ git checkout build -----"
+    git checkout feature/auto
+}
+
+function gotoBuildBranch {
+    echo "------ git checkout build -----"
+    git checkout build
 }
 
 # Nodejs
@@ -141,3 +146,8 @@ unset color_prompt force_color_prompt
 #*)
 #    ;;
 #esac
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "/home/linuxbrew/.linuxbrew/opt/nvm/nvm.sh" ] && . "/home/linuxbrew/.linuxbrew/opt/nvm/nvm.sh" # This loads nvm
+[ -s "/home/linuxbrew/.linuxbrew/opt/nvm/etc/bash_completion.d/nvm" ] && . "/home/linuxbrew/.linuxbrew/opt/nvm/etc/bash_completion.d/nvm" # This loads nvm bash_completion
+

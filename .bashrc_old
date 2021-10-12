@@ -3,7 +3,10 @@
 # for examples
 
 # If not running interactively, don't do anything
-[ -z "$PS1" ] && return
+case $- in
+    *i*) ;;
+      *) return;;
+esac
 
 # don't put duplicate lines or lines starting with space in the history.
 # See bash(1) for more options
@@ -28,13 +31,13 @@ shopt -s checkwinsize
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
 # set variable identifying the chroot you work in (used in the prompt below)
-if [ -z "$debian_chroot" ] && [ -r /etc/debian_chroot ]; then
+if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
     debian_chroot=$(cat /etc/debian_chroot)
 fi
 
 # set a fancy prompt (non-color, unless we know we "want" color)
 case "$TERM" in
-    xterm-color) color_prompt=yes;;
+    xterm-color|*-256color) color_prompt=yes;;
 esac
 
 # uncomment for a colored prompt, if the terminal has the capability; turned
@@ -53,51 +56,10 @@ if [ -n "$force_color_prompt" ]; then
     fi
 fi
 
-###################################
-c_cyan=`tput setaf 6`
-c_red=`tput setaf 1`
-c_green=`tput setaf 2`
-c_sgr0=`tput sgr0`
- 
-parse_git_branch ()
-{
-   if git rev-parse --git-dir >/dev/null 2>&1
-   then
-      gitver=$(git branch 2>/dev/null| sed -n '/^\*/s/^\* //p')
-   else
-      return 0
-   fi
-   echo -e "["$gitver"] "
-}
- 
-branch_color ()
-{
-   if git rev-parse --git-dir >/dev/null 2>&1
-   then
-      color=""
-	  if git diff --quiet 2>/dev/null >&2      
-	  then
-         color="${c_green}"
-      else
-         color=${c_red}
-      fi
-   else
-      return 0
-   fi
-   echo -ne $color
-}
-
- 
-#export PS1='\u@\h\[${c_sgr0}\]:\W\[${c_sgr0}\] (\[$(branch_color)\]$(parse_git_branch)\[${c_sgr0}\])\$ '
-
-###################################
-
 if [ "$color_prompt" = yes ]; then
     PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
 else
-    PS1='\[$(branch_color)\]$(parse_git_branch)\[${c_sgr0}\]${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
-    #PS1='$(my_branch)${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
-    #PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
 fi
 unset color_prompt force_color_prompt
 
@@ -122,10 +84,13 @@ if [ -x /usr/bin/dircolors ]; then
     alias egrep='egrep --color=auto'
 fi
 
+# colored GCC warnings and errors
+#export GCC_COLORS='error=01;31:warning=01;35:note=01;36:caret=01;32:locus=01:quote=01'
+
 # some more ls aliases
 alias ll='ls -alF'
 alias la='ls -A'
-alias l='ls -lF'
+alias l='ls -CF'
 
 # Add an "alert" alias for long running commands.  Use like so:
 #   sleep 10; alert
@@ -143,36 +108,30 @@ fi
 # enable programmable completion features (you don't need to enable
 # this, if it's already enabled in /etc/bash.bashrc and /etc/profile
 # sources /etc/bash.bashrc).
-if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
     . /etc/bash_completion
+  fi
 fi
 
+#android sdk
+export PATH=${PATH}:/home/worker/.sbin
+export PATH=${PATH}:/home/linuxbrew/.linuxbrew/bin
+export ANDROID_HOME=/home/worker/bin/android-sdk
+export ANDROID_SDK_ROOT=$ANDROID_HOME
+export PATH=${PATH}:$ANDROID_SDK_ROOT/tools/bin
+export NODE_HOME=/usr/bin/node
+export GULP_HOME=/usr/bin/gulp
+export CORDOVA_HOME=/usr/bin/cordova
+export PATH=${PATH}:$NODE_HOME
+export PATH=${PATH}:$GULP_HOME
+export PATH=${PATH}:$CORDOVA_HOME
 
-########################## add screen alias by Geunchae #############################
-alias SR='screen -R'
+#java
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 
-alias ..='pushd .. >/dev/null'
-alias ,,='popd >/dev/null'
-alias dirs='dirs -v'
-alias cd='pushd >/dev/null'
-
-#PGC constants
-export mirror='--reference=/home001/mirror/lr/'
-
-#PGC functions
-function PGC_rulecheckerUpdate() {
-    pushd ~/bin/ && rm rulechecker.sh && wget http://atos-storage.lge.net:8080/results/rulechecker/rulechecker.sh --no-check-certificate && chmod +x rulechecker.sh && ll ~/bin/rulechecker.sh && popd
-}
-
-function PGC_rm_orig() {
-    echo --deleting .orig files--
-    find . -name *.orig
-    rm `find . -name *.orig`
-}
-
-function PGC_help() {
-    echo "------ PGC Command Helper!!! -----"
-    echo "[Copy from other build server] : rsync -azuv -e ssh Id@Domain:/RemotePath /LocalPath"
-    echo "[Create symbolic link]       : ln -s Target LinkName"
-    echo "[Git push with gerrit]       : git push {remote} HEAD:refs/{for}/{Branch}"
-}
+LANG=ko_KR.utf8
+export LANG
+#echo $LANG
